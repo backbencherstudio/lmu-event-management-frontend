@@ -56,7 +56,7 @@ export default function Landingpage() {
     };
 
     return (
-      <div className="w-full px-6 sm:px-3 md:px-6 py-3 md:py-4 bg-[#f2f7fa] rounded-lg flex flex-row justify-between items-center overflow-hidden mb-4 md:mb-10 gap-3 md:gap-4">
+      <div className="w-full px-6 sm:px-3 md:px-6 py-3 md:py-4 bg-[#f2f7fa] rounded-lg flex flex-row justify-between items-center mb-4 md:mb-10 gap-3 md:gap-4 overflow-hidden">
         <div className="flex items-center gap-3 md:gap-4">
           <div className="hidden md:flex items-center gap-2 md:gap-4">
             <div className="self-stretch rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] outline outline-1 outline-offset-[-1px] outline-[#cfd4dc] flex justify-start items-start overflow-hidden">
@@ -137,7 +137,7 @@ export default function Landingpage() {
 
   return (
     <>
-      <div>
+      <div className="overflow-x-hidden w-full">
         {/* Hero Section */}
         <div className="box px-5">
           {/* Background container with responsive height */}
@@ -155,7 +155,7 @@ export default function Landingpage() {
             >
               {/* Text content container */}
               <div className="text flex flex-col items-center justify-start w-full mt-[50px] md:mt-[135px] px-4">
-                <div className="w-full max-w-[1280px] flex flex-col items-center justify-start gap-2 md:gap-4">
+                <div className="w-full max-w-[1280px] -mt-8 sm:-mt-0 flex flex-col items-center justify-start gap-2 md:gap-4">
                   {/* Main heading */}
                   <div className="text-center text-white text-2xl sm:text-4xl md:text-[64px] font-bold font-['Figtree'] capitalize">
                     Welcome to Cayman Biz Events
@@ -173,13 +173,13 @@ export default function Landingpage() {
         {/* Calendar Section */}
         <div className="box mx-auto px-2 md:px-4 py-4 md:py-8">
           {/* Calendar container with max width and padding */}
-          <div className="max-w-full  mx-5 bg-white rounded-2xl overflow-hidden  p-3 md:p-6 -mt-20 md:-mt-36">
+          <div className="max-w-full mx-5 bg-white rounded-2xl overflow-hidden p-3 md:p-6 -mt-20 md:-mt-36">
             {/* Toolbar */}
             <CustomToolbar />
             
             {/* Calendar Grid */}
             {view === 'month' && (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-hidden">
                 {/* Mobile Calendar View */}
                 <div className="block md:hidden">
                   <div className="flex flex-col gap-3 px-1">
@@ -208,7 +208,7 @@ export default function Landingpage() {
                                 <div className="w-full">
                                   {dayEvents.map((event, idx) => (
                                     <div key={idx} className="mb-2">
-                                      <div className="text-[#006198] text-lg font-normal">
+                                      <div className="text-[#006198] text-lg font-normal truncate">
                                         {event.title}
                                       </div>
                                       <div className="text-[#4A4C56] text-sm">
@@ -240,13 +240,13 @@ export default function Landingpage() {
               </div>
             )}
             {view === 'agenda' && (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-hidden">
                 <div className="space-y-4">
                   {events
                     .sort((a, b) => a.start - b.start)
                     .map((event, index) => (
                       <div key={index} className="p-4 border rounded-lg hover:bg-gray-50">
-                        <div className="font-semibold text-lg text-[#25314c]">{event.title}</div>
+                        <div className="font-semibold text-lg text-[#25314c] truncate">{event.title}</div>
                         <div className="text-sm text-gray-600">
                           {format(event.start, 'MMMM d, yyyy h:mm a')} - {format(event.end, 'h:mm a')}
                         </div>
@@ -256,7 +256,7 @@ export default function Landingpage() {
               </div>
             )}
             {view === 'day' && (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-hidden">
                 <div className="min-h-[600px] border rounded-lg">
                   <div className="text-center p-4 border-b bg-gray-50">
                     <h2 className="text-xl font-semibold text-[#25314c]">
@@ -271,7 +271,7 @@ export default function Landingpage() {
                       .sort((a, b) => a.start - b.start)
                       .map((event, index) => (
                         <div key={index} className="p-4 hover:bg-gray-50">
-                          <div className="font-semibold text-[#25314c]">{event.title}</div>
+                          <div className="font-semibold text-[#25314c] truncate">{event.title}</div>
                           <div className="text-sm text-gray-600">
                             {format(event.start, 'h:mm a')} - {format(event.end, 'h:mm a')}
                           </div>

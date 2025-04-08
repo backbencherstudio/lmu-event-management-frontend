@@ -36,37 +36,38 @@ export default function DatePickerModal({ isOpen, onClose, onSelect, currentDate
   return (
     <>
       {/* Modal Overlay */}
+      <div className="box flex justify-center items-center">
       <div 
-        className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-50 flex items-center justify-center"
+        className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-50 flex items-center justify-center p-4"
         onClick={onClose}
       >
         {/* Modal Content */}
         <div 
-          className="bg-white rounded-lg p-3 sm:p-6 w-[95vw] sm:w-[400px] max-w-[90vw] h-auto sm:h-auto flex flex-col"
+          className="bg-white rounded-lg p-4 w-full max-w-[400px] h-auto flex flex-col shadow-lg"
           onClick={e => e.stopPropagation()}
         >
           {/* Modal Header */}
-          <div className="flex justify-between items-center mb-2 sm:mb-4">
-            <h2 className="text-lg sm:text-xl font-semibold text-[#344053]">Select Date</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-[#344053]">Select Date</h2>
             <button 
               onClick={onClose}
-              className="text-[#344053] hover:text-[#006198]"
+              className="text-[#344053] hover:text-[#006198] text-xl"
             >
               ✕
             </button>
           </div>
 
           {/* Modal Body */}
-          <div className="flex flex-1 gap-2 sm:gap-4">
+          <div className="flex flex-1 gap-4">
             {/* Year Column */}
-            <div className="flex-1 border-r pr-2 sm:pr-4">
-              <h3 className="text-xs sm:text-sm font-medium text-[#344053] mb-1 sm:mb-2">Year</h3>
-              <div className="h-[180px] sm:h-[200px] overflow-y-auto">
+            <div className="flex-1 border-r pr-4">
+              <h3 className="text-sm font-medium text-[#344053] mb-2">Year</h3>
+              <div className="h-[200px] overflow-y-auto">
                 {years.map(year => (
                   <button
                     key={year}
                     onClick={() => handleYearSelect(year)}
-                    className={`w-full text-left px-2 sm:px-3 py-1.5 sm:py-2 rounded-md text-sm sm:text-base ${
+                    className={`w-full text-left px-3 py-2 rounded-md text-base ${
                       year === selectedYear 
                         ? 'bg-[#006198] text-white' 
                         : 'hover:bg-[#f8f9fb] text-[#344053]'
@@ -80,13 +81,13 @@ export default function DatePickerModal({ isOpen, onClose, onSelect, currentDate
 
             {/* Month Column */}
             <div className="flex-1">
-              <h3 className="text-xs sm:text-sm font-medium text-[#344053] mb-1 sm:mb-2">Month</h3>
-              <div className="h-[180px] sm:h-[200px] overflow-y-auto">
+              <h3 className="text-sm font-medium text-[#344053] mb-2">Month</h3>
+              <div className="h-[200px] overflow-y-auto">
                 {months.map((month, index) => (
                   <button
                     key={month}
                     onClick={() => handleMonthSelect(index)}
-                    className={`w-full text-left px-2 sm:px-3 py-1.5 sm:py-2 rounded-md text-sm sm:text-base ${
+                    className={`w-full text-left px-3 py-2 rounded-md text-base ${
                       index === selectedMonth
                         ? 'bg-[#006198] text-white'
                         : 'hover:bg-[#f8f9fb] text-[#344053]'
@@ -100,16 +101,18 @@ export default function DatePickerModal({ isOpen, onClose, onSelect, currentDate
           </div>
 
           {/* Search Button */}
-          <div className="mt-2 sm:mt-4 flex justify-end">
+          <div className="mt-4 flex justify-end">
             <button
               onClick={handleSearch}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#006198] text-white text-sm sm:text-base rounded-lg hover:bg-[#004d7a]"
+              className="px-4 py-2 bg-[#006198] text-white text-base rounded-lg hover:bg-[#004d7a]"
             >
               Search
             </button>
           </div>
         </div>
       </div>
+      </div>
+
 
       {/* Scrollbar Styles */}
       <style jsx global>{`

@@ -63,7 +63,7 @@ export default function Register({ isOpen, onClose }) {
       >
         {/* Modal Content */}
         <div 
-          className={`w-[80vw] max-w-[600px] p-8 bg-white rounded-[20px] shadow-[0px_39px_23px_-27px_rgba(0,0,0,0.10)] outline outline-1 outline-offset-[-1px] outline-[#dfe4ea] overflow-y-auto max-h-[90vh] transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+          className={`w-[80vw] max-w-[600px] p-8 bg-white rounded-[20px] shadow-[0px_39px_23px_-27px_rgba(0,0,0,0.10)] outline-1 outline-offset-[-1px] outline-[#dfe4ea] overflow-y-auto max-h-[90vh] transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
           onClick={e => e.stopPropagation()}
         >
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col justify-start items-start gap-[30px]">
@@ -71,7 +71,7 @@ export default function Register({ isOpen, onClose }) {
               <div className="flex flex-col justify-start items-start gap-6">
                 <div className="flex flex-col justify-start items-center gap-7">
                   <div className="flex flex-col justify-start items-start gap-[7px]">
-                    <div className="justify-start text-[#1d1f2c] text-[32px] font-medium ">Sign up here for weekly event updates!</div>
+                    <div className="justify-start text-[#1d1f2c] text-2xl sm:text-[32px] font-medium ">Sign up here for weekly event updates!</div>
                   </div>
                 </div>
                 <div className="self-stretch inline-flex justify-start items-start gap-[26px] flex-wrap content-start">
@@ -82,7 +82,7 @@ export default function Register({ isOpen, onClose }) {
                       </div>
                       <input
                         {...register("firstName", { required: "First name is required" })}
-                        className="self-stretch flex-1 pl-5 pr-4 py-3 bg-[#f2f7fa] rounded-md outline outline-1 outline-offset-[-1px] outline-[#006198]"
+                        className="self-stretch flex-1 pl-5 pr-4 py-3 bg-[#f2f7fa] rounded-md outline-1 outline-offset-[-1px] outline-[#006198]"
                       />
                       {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName.message}</p>}
                     </div>
