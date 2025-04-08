@@ -7,6 +7,7 @@ import OurCoaches from './_home/our-coaches';
 import BookSession from './_home/Book-a-session';
 import Review from './_home/review';
 import Landingpage from './_components/landingpage';
+import Menu from './_components/menu';
 
 export default function Layout({ children }) {
     return (
@@ -14,7 +15,7 @@ export default function Layout({ children }) {
 
         {/* Home Section */}
         <section className="w-full">
-          <Landingpage />
+        <Menu />
         </section>
 
       </div>

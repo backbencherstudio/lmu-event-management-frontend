@@ -15,25 +15,25 @@ const CalendarDay = ({ day, events = [], isToday, isSelected, isHighlighted }) =
   };
 
   return (
-    <div className={`w-[218px] h-[254px] p-4 ${getBackgroundColor()} border-r border-b border-white flex flex-col justify-start items-start gap-[18px] overflow-hidden`}>
-      <div className={`${getDateColor()} text-[32px] font-normal font-['Outfit'] leading-normal flex items-center`}>
+    <div className={`w-full lg:w-[218px] h-[200px] lg:h-[254px] p-2 lg:p-4 ${getBackgroundColor()} border-r border-b border-white flex flex-col justify-start items-start gap-2 lg:gap-[18px] overflow-hidden`}>
+      <div className={`${getDateColor()} text-2xl lg:text-[32px] font-normal font-['Outfit'] leading-normal flex items-center`}>
         {day}
       </div>
-      <div className="bg-white w-full flex-1 flex flex-col justify-center items-center gap-1 p-4">
-        <div className="flex flex-col justify-center items-center gap-4 w-full">
+      <div className="bg-white w-full flex-1 flex flex-col justify-center items-center gap-1 p-2 lg:p-4">
+        <div className="flex flex-col justify-center items-center gap-2 lg:gap-4 w-full">
           {events.length > 0 ? (
             events.map((event, index) => (
               <div key={index} className="w-full ">
-                <div className={`${isHighlighted ? 'text-[#FF69B4]' : 'text-[#006198]'} text-lg font-normal font-['Outfit'] leading-snug`}>
+                <div className={`${isHighlighted ? 'text-[#FF69B4]' : 'text-[#006198]'} text-base lg:text-lg font-normal font-['Outfit'] leading-snug`}>
                   {event.title}
                 </div>
-                <div className="text-[#4A4C56] text-sm font-normal font-['Outfit'] leading-snug">
+                <div className="text-[#4A4C56] text-xs lg:text-sm font-normal font-['Outfit'] leading-snug">
                   {format(event.start, 'h:mm a')} - {format(event.end, 'h:mm a')}
                 </div>
               </div>
             ))
           ) : (
-            <div className={`${isHighlighted ? 'text-[#FF69B4]' : 'text-[#006198]'} text-lg font-normal font-['Outfit'] leading-snug text-center`}>
+            <div className={`${isHighlighted ? 'text-[#FF69B4]' : 'text-[#006198]'} text-base lg:text-lg font-normal font-['Outfit'] leading-snug text-center`}>
               No Events Today
             </div>
           )}
@@ -81,7 +81,7 @@ const CalendarGrid = ({ events, currentDate }) => {
     <div className="grid grid-cols-7 gap-0">
       {/* Weekday headers */}
       {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => (
-        <div key={day} className="w-[218px] py-2 text-[#4A4C56] font-medium border-b border-white flex items-center">
+        <div key={day} className="w-full lg:w-[218px] py-2 text-[#4A4C56] text-xs lg:text-sm font-medium border-b border-white flex items-center">
           {day}
         </div>
       ))}
@@ -98,7 +98,7 @@ const CalendarGrid = ({ events, currentDate }) => {
               isHighlighted={getEventsForDay(day).length > 0}
             />
           ) : (
-            <div className="w-[218px] h-[254px] bg-[#f8f9fb] border-r border-b border-white" />
+            <div className="w-full lg:w-[218px] h-[200px] lg:h-[254px] bg-[#f8f9fb] border-r border-b border-white" />
           )}
         </React.Fragment>
       ))}
