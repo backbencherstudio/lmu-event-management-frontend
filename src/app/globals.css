@@ -25,7 +25,6 @@ body {
 .box {
   max-width: 1720px;
   margin: 0 auto;
-  background-color: rgba(87, 228, 197, 0.26);
 }
 
 
@@ -60,4 +59,119 @@ body {
 }
 .rbc-toolbar {
   margin-bottom: 20px;
+}
+
+/* Date Range Picker Customization */
+.rdrCalendarWrapper {
+  width: 328px !important;
+  background: transparent !important;
+  color: #374151 !important;
+}
+
+.rdrDateDisplayWrapper {
+  display: none !important;
+}
+
+.rdrMonthAndYearWrapper {
+  padding-top: 0 !important;
+  height: 48px !important;
+  align-items: center !important;
+}
+
+.rdrMonthAndYearPickers {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+}
+
+.rdrMonth {
+  padding: 0 !important;
+  width: 328px !important;
+}
+
+.rdrWeekDays {
+  padding: 8px 0 !important;
+}
+
+.rdrWeekDay {
+  color: #6B7280 !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+}
+
+.rdrDay {
+  height: 40px !important;
+  color: #374151 !important;
+}
+
+.rdrDayNumber {
+  font-weight: 400 !important;
+  font-size: 14px !important;
+}
+
+.rdrDayToday .rdrDayNumber span:after {
+  display: none !important;
+}
+
+.rdrDayToday {
+  background: transparent !important;
+}
+
+.rdrStartEdge,
+.rdrEndEdge {
+  background: #006198 !important;
+  border-radius: 6px !important;
+}
+
+.rdrInRange {
+  background: #E5F0F8 !important;
+  color: #006198 !important;
+}
+
+.rdrDayStartPreview,
+.rdrDayEndPreview {
+  border: 2px solid #006198 !important;
+  border-radius: 6px !important;
+}
+
+.rdrDayInPreview {
+  background: #F3F8FC !important;
+  color: #006198 !important;
+}
+
+.rdrNextPrevButton {
+  background: transparent !important;
+  border-radius: 6px !important;
+  padding: 6px !important;
+}
+
+.rdrNextPrevButton:hover {
+  background: #F3F4F6 !important;
+}
+
+.rdrPprevButton i {
+  border-color: transparent #6B7280 transparent transparent !important;
+}
+
+.rdrNextButton i {
+  border-color: transparent transparent transparent #6B7280 !important;
+}
+
+.rdrDayStartOfMonth .rdrInRange, 
+.rdrDayStartOfMonth .rdrEndEdge, 
+.rdrDayStartOfWeek .rdrInRange, 
+.rdrDayStartOfWeek .rdrEndEdge {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+.rdrDayEndOfMonth .rdrInRange,  
+.rdrDayEndOfMonth .rdrStartEdge,
+.rdrDayEndOfWeek .rdrInRange,
+.rdrDayEndOfWeek .rdrStartEdge {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }

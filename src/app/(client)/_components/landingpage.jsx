@@ -16,7 +16,7 @@ const events = [
     end: new Date(2024, 2, 31, 19, 30),   // March 31, 2024, 7:30 PM
   },
   {
-    title: 'Business Networking Event',
+    title: 'Business Networking Event', 
     start: new Date(2024, 3, 5, 14, 0),   // April 5, 2024, 2:00 PM
     end: new Date(2024, 3, 5, 17, 0),     // April 5, 2024, 5:00 PM
   },
@@ -24,6 +24,81 @@ const events = [
     title: 'Corporate Workshop',
     start: new Date(2024, 3, 10, 9, 0),   // April 10, 2024, 9:00 AM
     end: new Date(2024, 3, 10, 16, 0),    // April 10, 2024, 4:00 PM
+  },
+  {
+    title: 'New Year Tech Conference',
+    start: new Date(2025, 0, 5, 9, 0),    // Jan 5, 2025, 9:00 AM
+    end: new Date(2025, 0, 5, 17, 0),     // Jan 5, 2025, 5:00 PM
+  },
+  {
+    title: 'Winter Innovation Summit',
+    start: new Date(2025, 0, 15, 10, 0),  // Jan 15, 2025, 10:00 AM
+    end: new Date(2025, 0, 15, 16, 0),    // Jan 15, 2025, 4:00 PM
+  },
+  {
+    title: 'Digital Marketing Workshop',
+    start: new Date(2025, 0, 25, 13, 0),  // Jan 25, 2025, 1:00 PM
+    end: new Date(2025, 0, 25, 18, 0),    // Jan 25, 2025, 6:00 PM
+  },
+  {
+    title: 'AI & ML Symposium',
+    start: new Date(2025, 1, 5, 9, 30),   // Feb 5, 2025, 9:30 AM
+    end: new Date(2025, 1, 5, 15, 30),    // Feb 5, 2025, 3:30 PM
+  },
+  {
+    title: 'Blockchain Forum',
+    start: new Date(2025, 1, 12, 10, 0),  // Feb 12, 2025, 10:00 AM
+    end: new Date(2025, 1, 12, 16, 0),    // Feb 12, 2025, 4:00 PM
+  },
+  {
+    title: 'Cloud Tech Summit',
+    start: new Date(2025, 1, 20, 9, 0),   // Feb 20, 2025, 9:00 AM
+    end: new Date(2025, 1, 20, 17, 0),    // Feb 20, 2025, 5:00 PM
+  },
+  {
+    title: 'Data Science Conference',
+    start: new Date(2025, 2, 3, 13, 30),  // Mar 3, 2025, 1:30 PM
+    end: new Date(2025, 2, 3, 16, 30),    // Mar 3, 2025, 4:30 PM
+  },
+  {
+    title: 'Cybersecurity Workshop',
+    start: new Date(2025, 2, 10, 9, 0),   // Mar 10, 2025, 9:00 AM
+    end: new Date(2025, 2, 10, 18, 0),    // Mar 10, 2025, 6:00 PM
+  },
+  {
+    title: 'IoT Innovation Forum',
+    start: new Date(2025, 2, 17, 10, 0),  // Mar 17, 2025, 10:00 AM
+    end: new Date(2025, 2, 17, 15, 0),    // Mar 17, 2025, 3:00 PM
+  },
+  {
+    title: 'FinTech Conference',
+    start: new Date(2025, 2, 24, 14, 0),  // Mar 24, 2025, 2:00 PM
+    end: new Date(2025, 2, 24, 17, 0),    // Mar 24, 2025, 5:00 PM
+  },
+  {
+    title: 'Future of AI Summit',
+    start: new Date(2025, 2, 31, 9, 30),  // Mar 31, 2025, 9:30 AM
+    end: new Date(2025, 2, 31, 16, 30),   // Mar 31, 2025, 4:30 PM
+  },
+  {
+    title: 'Digital Innovation Forum',
+    start: new Date(2025, 3, 2, 10, 0),   // Apr 2, 2025, 10:00 AM
+    end: new Date(2025, 3, 2, 15, 0),     // Apr 2, 2025, 3:00 PM
+  },
+  {
+    title: 'Tech Leadership Summit',
+    start: new Date(2025, 3, 5, 9, 0),    // Apr 5, 2025, 9:00 AM
+    end: new Date(2025, 3, 5, 17, 0),     // Apr 5, 2025, 5:00 PM
+  },
+  {
+    title: 'Startup Innovation Conference',
+    start: new Date(2025, 3, 7, 10, 0),   // Apr 7, 2025, 10:00 AM
+    end: new Date(2025, 3, 7, 16, 0),     // Apr 7, 2025, 4:00 PM
+  },
+  {
+    title: 'Future Tech Symposium',
+    start: new Date(2025, 3, 9, 9, 0),    // Apr 9, 2025, 9:00 AM
+    end: new Date(2025, 3, 9, 17, 0),     // Apr 9, 2025, 5:00 PM
   }
 ];
 
