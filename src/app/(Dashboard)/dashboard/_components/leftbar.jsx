@@ -6,9 +6,20 @@ import logo from "../../../../../public/client/logo.svg";
 import events from "../../../../../public/client/events.svg";
 import subscriber from "../../../../../public/client/subscriber.svg";
 import { IoSearch, IoChevronForward, IoLogOutOutline } from "react-icons/io5";
+import AuthApis from "../../../API/AuthApi";
 
 export default function Leftbar() {
   const pathname = usePathname();
+
+  const handleLogout = () => {
+    // Clear localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+    }
+    
+    // Use AuthApis logout which handles cookie removal and redirection
+    AuthApis.logout();
+  };
 
   return (
     <>
@@ -103,10 +114,7 @@ export default function Leftbar() {
         {/* Logout Button */}
         <div className="mt-auto">
           <button
-            onClick={() => {
-              // Add logout logic here
-              console.log("Logout clicked");
-            }}
+            onClick={handleLogout}
             className="w-full px-3 py-2 bg-neutral-50 rounded-md flex justify-between items-center hover:bg-neutral-100 transition-colors"
           >
             <div className="flex justify-start items-center gap-2">

@@ -4,6 +4,8 @@ import { DateRange } from 'react-date-range'
 import { format } from 'date-fns'
 import 'react-date-range/dist/styles.css'
 import 'react-date-range/dist/theme/default.css'
+import EventApis from '../../API/EventApi'
+import { toast } from 'react-hot-toast'
 
 // Utility function to convert 12h to 24h format
 const convert12to24 = (time12h) => {
@@ -39,7 +41,7 @@ const convert24to12 = (time24h) => {
 
 export default function Dashboard() {
   const defaultFormState = {
-    eventName: '',
+    name: '',
     dateRange: [{
       startDate: new Date(),
       endDate: new Date(),
@@ -53,17 +55,18 @@ export default function Dashboard() {
   }
 
   // Form states
-  const [eventName, setEventName] = useState(defaultFormState.eventName)
+  const [name, setName] = useState(defaultFormState.name)
   const [dateRange, setDateRange] = useState(defaultFormState.dateRange)
   const [timeRange, setTimeRange] = useState(defaultFormState.timeRange)
   const [description, setDescription] = useState(defaultFormState.description)
   const [errors, setErrors] = useState({})
+  const [isLoading, setIsLoading] = useState(false)
 
   const validateForm = () => {
     const newErrors = {}
     
-    if (!eventName.trim()) {
-      newErrors.eventName = 'Event name is required'
+    if (!name.trim()) {
+      newErrors.name = 'Event name is required'
     }
 
     if (!description.trim()) {
@@ -93,26 +96,43 @@ export default function Dashboard() {
   }
 
   const resetForm = () => {
-    setEventName(defaultFormState.eventName)
+    setName(defaultFormState.name)
     setDateRange(defaultFormState.dateRange)
     setTimeRange(defaultFormState.timeRange)
     setDescription(defaultFormState.description)
     setErrors({})
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (validateForm()) {
-      const formData = {
-        eventName,
-        date: {
-          startDate: format(dateRange[0].startDate, 'yyyy-MM-dd'),
-          endDate: format(dateRange[0].endDate, 'yyyy-MM-dd')
-        },
-        time: timeRange,
-        description
+      setIsLoading(true)
+      try {
+        const formData = {
+          name,
+          date: {
+            startDate: format(dateRange[0].startDate, 'yyyy-MM-dd'),
+            endDate: format(dateRange[0].endDate, 'yyyy-MM-dd')
+          },
+          time: {
+            startTime: timeRange.startTime,
+            endTime: timeRange.endTime
+          },
+          description
+        }
+        
+        const response = await EventApis.createEvent(formData)
+        if (response.success) {
+          resetForm()
+          toast.success('Event created successfully')
+        } else {
+          toast.error(response.message || 'Failed to create event')
+        }
+      } catch (error) {
+        console.error('Error creating event:', error)
+        toast.error(error.message || 'Failed to create event')
+      } finally {
+        setIsLoading(false)
       }
-      console.log('Form Data:', formData)
-      resetForm()
     }
   }
 
@@ -124,18 +144,7 @@ export default function Dashboard() {
           <h1 className="text-2xl font-semibold text-gray-900">Create Event</h1>
           
           {/* Search Bar */}
-          <div className="w-80">
-            <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Search" 
-                className="w-full px-3 py-2 bg-white rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500"
-              />
-              {/* <div className="absolute right-3 top-2.5 px-1 py-px text-xs text-gray-500 border border-gray-200 rounded">
-                ⌘K
-              </div> */}
-            </div>
-          </div>
+
         </div>
       </header>
 
@@ -160,17 +169,17 @@ export default function Dashboard() {
             <div className="flex-1 max-w-[512px]">
               <input 
                 type="text"
-                value={eventName}
+                value={name}
                 onChange={(e) => {
-                  setEventName(e.target.value)
-                  if (errors.eventName) {
-                    setErrors(prev => ({ ...prev, eventName: '' }))
+                  setName(e.target.value)
+                  if (errors.name) {
+                    setErrors(prev => ({ ...prev, name: '' }))
                   }
                 }}
-                className={`w-full px-3.5 py-2.5 border ${errors.eventName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:border-blue-500`}
+                className={`w-full px-3.5 py-2.5 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:border-blue-500`}
               />
-              {errors.eventName && (
-                <p className="mt-1 text-sm text-red-500">{errors.eventName}</p>
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-500">{errors.name}</p>
               )}
             </div>
           </div>
@@ -197,7 +206,7 @@ export default function Dashboard() {
                     readOnly
                   />
                 </div>
-                <div className="w-full rounded-lg border border-gray-200 bg-white p-4 shadow-lg">
+                <div className="h-full w-[366px] rounded-lg border border-gray-200 bg-white p-4 shadow-lg">
                   <DateRange
                     ranges={[{
                       startDate: dateRange[0].startDate,
@@ -284,14 +293,16 @@ export default function Dashboard() {
           <button 
             className="px-3.5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
             onClick={resetForm}
+            disabled={isLoading}
           >
             Cancel
           </button>
           <button 
-            className="px-3.5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            className="px-3.5 py-2.5 text-sm font-semibold text-white bg-[#006198] rounded-lg hover:bg-[#004d7a] disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleSave}
+            disabled={isLoading}
           >
-            Save
+            {isLoading ? 'Saving...' : 'Save'}
           </button>
         </div>
       </main>

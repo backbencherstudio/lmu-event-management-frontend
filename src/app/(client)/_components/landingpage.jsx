@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import format from 'date-fns/format';
 import bgimg from '../../../../public/client/background.png';
 import { IoChevronDown } from 'react-icons/io5';
@@ -7,106 +7,102 @@ import DatePickerModal from './DatePickerModal';
 import CalendarGrid from './CalendarGrid';
 import leftarrow from '../../../../public/client/left.svg';
 import rightarrow from '../../../../public/client/right.svg';
-
-// Sample events data
-const events = [
-  {
-    title: 'Fin Talks – Future Focused',
-    start: new Date(2024, 2, 31, 17, 30), // March 31, 2024, 5:30 PM
-    end: new Date(2024, 2, 31, 19, 30),   // March 31, 2024, 7:30 PM
-  },
-  {
-    title: 'Business Networking Event', 
-    start: new Date(2024, 3, 5, 14, 0),   // April 5, 2024, 2:00 PM
-    end: new Date(2024, 3, 5, 17, 0),     // April 5, 2024, 5:00 PM
-  },
-  {
-    title: 'Corporate Workshop',
-    start: new Date(2024, 3, 10, 9, 0),   // April 10, 2024, 9:00 AM
-    end: new Date(2024, 3, 10, 16, 0),    // April 10, 2024, 4:00 PM
-  },
-  {
-    title: 'New Year Tech Conference',
-    start: new Date(2025, 0, 5, 9, 0),    // Jan 5, 2025, 9:00 AM
-    end: new Date(2025, 0, 5, 17, 0),     // Jan 5, 2025, 5:00 PM
-  },
-  {
-    title: 'Winter Innovation Summit',
-    start: new Date(2025, 0, 15, 10, 0),  // Jan 15, 2025, 10:00 AM
-    end: new Date(2025, 0, 15, 16, 0),    // Jan 15, 2025, 4:00 PM
-  },
-  {
-    title: 'Digital Marketing Workshop',
-    start: new Date(2025, 0, 25, 13, 0),  // Jan 25, 2025, 1:00 PM
-    end: new Date(2025, 0, 25, 18, 0),    // Jan 25, 2025, 6:00 PM
-  },
-  {
-    title: 'AI & ML Symposium',
-    start: new Date(2025, 1, 5, 9, 30),   // Feb 5, 2025, 9:30 AM
-    end: new Date(2025, 1, 5, 15, 30),    // Feb 5, 2025, 3:30 PM
-  },
-  {
-    title: 'Blockchain Forum',
-    start: new Date(2025, 1, 12, 10, 0),  // Feb 12, 2025, 10:00 AM
-    end: new Date(2025, 1, 12, 16, 0),    // Feb 12, 2025, 4:00 PM
-  },
-  {
-    title: 'Cloud Tech Summit',
-    start: new Date(2025, 1, 20, 9, 0),   // Feb 20, 2025, 9:00 AM
-    end: new Date(2025, 1, 20, 17, 0),    // Feb 20, 2025, 5:00 PM
-  },
-  {
-    title: 'Data Science Conference',
-    start: new Date(2025, 2, 3, 13, 30),  // Mar 3, 2025, 1:30 PM
-    end: new Date(2025, 2, 3, 16, 30),    // Mar 3, 2025, 4:30 PM
-  },
-  {
-    title: 'Cybersecurity Workshop',
-    start: new Date(2025, 2, 10, 9, 0),   // Mar 10, 2025, 9:00 AM
-    end: new Date(2025, 2, 10, 18, 0),    // Mar 10, 2025, 6:00 PM
-  },
-  {
-    title: 'IoT Innovation Forum',
-    start: new Date(2025, 2, 17, 10, 0),  // Mar 17, 2025, 10:00 AM
-    end: new Date(2025, 2, 17, 15, 0),    // Mar 17, 2025, 3:00 PM
-  },
-  {
-    title: 'FinTech Conference',
-    start: new Date(2025, 2, 24, 14, 0),  // Mar 24, 2025, 2:00 PM
-    end: new Date(2025, 2, 24, 17, 0),    // Mar 24, 2025, 5:00 PM
-  },
-  {
-    title: 'Future of AI Summit',
-    start: new Date(2025, 2, 31, 9, 30),  // Mar 31, 2025, 9:30 AM
-    end: new Date(2025, 2, 31, 16, 30),   // Mar 31, 2025, 4:30 PM
-  },
-  {
-    title: 'Digital Innovation Forum',
-    start: new Date(2025, 3, 2, 10, 0),   // Apr 2, 2025, 10:00 AM
-    end: new Date(2025, 3, 2, 15, 0),     // Apr 2, 2025, 3:00 PM
-  },
-  {
-    title: 'Tech Leadership Summit',
-    start: new Date(2025, 3, 5, 9, 0),    // Apr 5, 2025, 9:00 AM
-    end: new Date(2025, 3, 5, 17, 0),     // Apr 5, 2025, 5:00 PM
-  },
-  {
-    title: 'Startup Innovation Conference',
-    start: new Date(2025, 3, 7, 10, 0),   // Apr 7, 2025, 10:00 AM
-    end: new Date(2025, 3, 7, 16, 0),     // Apr 7, 2025, 4:00 PM
-  },
-  {
-    title: 'Future Tech Symposium',
-    start: new Date(2025, 3, 9, 9, 0),    // Apr 9, 2025, 9:00 AM
-    end: new Date(2025, 3, 9, 17, 0),     // Apr 9, 2025, 5:00 PM
-  }
-];
+import EventApis from '../../../app/API/EventApi';
+import { toast } from 'react-hot-toast';
 
 export default function Landingpage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState('month');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const buttonRef = useRef(null);
+
+  // Fetch events from API
+  const fetchEvents = async () => {
+    setIsLoading(true);
+    try {
+      console.log('Fetching events...');
+      const response = await EventApis.getAllEvents({
+        page: currentPage,
+        limit: 50 // Fetch more events at once for calendar view
+      });
+
+      console.log('Events API Response:', response);
+
+      if (response.success && Array.isArray(response.data)) {
+        // Transform API data to match calendar format
+        const formattedEvents = response.data.map(event => {
+          try {
+            // Parse the date strings correctly
+            let startDateTime, endDateTime;
+
+            // Handle the case where startDate and endDate already include time
+            if (event.startDate.includes('T')) {
+              startDateTime = new Date(event.startDate);
+              endDateTime = new Date(event.endDate);
+            } else {
+              // If date and time are separate, combine them
+              const startDate = event.startDate.split('T')[0];
+              const endDate = event.endDate.split('T')[0];
+              const startTime = event.startTime || '00:00';
+              const endTime = event.endTime || '23:59';
+
+              startDateTime = new Date(`${startDate}T${startTime}`);
+              endDateTime = new Date(`${endDate}T${endTime}`);
+            }
+
+            // Validate the dates
+            if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+              console.error('Invalid date for event:', {
+                event,
+                startDateTime,
+                endDateTime
+              });
+              return null;
+            }
+
+            console.log('Successfully processed event:', {
+              id: event.id,
+              name: event.name,
+              start: startDateTime.toISOString(),
+              end: endDateTime.toISOString()
+            });
+
+            return {
+              id: event.id,
+              title: event.name || 'Untitled Event',
+              start: startDateTime,
+              end: endDateTime,
+              description: event.description || ''
+            };
+          } catch (error) {
+            console.error('Error processing event:', event, error);
+            return null;
+          }
+        }).filter(event => event !== null); // Remove any events that failed to process
+
+        console.log('Final formatted events:', formattedEvents);
+        setEvents(formattedEvents);
+        setTotalPages(response.totalPages || 1);
+      } else {
+        console.error('Invalid API response format:', response);
+        toast.error('Failed to load events. Invalid response format.');
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      toast.error('Failed to load events. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch events when component mounts or when page changes
+  useEffect(() => {
+    fetchEvents();
+  }, [currentPage]);
 
   const handleNavigate = (date) => {
     setCurrentDate(date);
@@ -114,6 +110,22 @@ export default function Landingpage() {
 
   const handleViewChange = (newView) => {
     setView(newView);
+  };
+
+  // Helper function to check if a date has events
+  const getEventsForDate = (date) => {
+    if (!Array.isArray(events)) return [];
+    
+    return events.filter(event => {
+      if (!event || !event.start) return false;
+      
+      const eventDate = new Date(event.start);
+      return (
+        eventDate.getDate() === date.getDate() &&
+        eventDate.getMonth() === date.getMonth() &&
+        eventDate.getFullYear() === date.getFullYear()
+      );
+    });
   };
 
   // Custom toolbar component
@@ -210,14 +222,19 @@ export default function Landingpage() {
     );
   };
 
+  // Loading state component
+  const LoadingState = () => (
+    <div className="flex justify-center items-center min-h-[400px]">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#006198]"></div>
+    </div>
+  );
+
   return (
     <>
       <div className="overflow-x-hidden w-full">
         {/* Hero Section */}
         <div className="box px-5">
-          {/* Background container with responsive height */}
           <div className="background h-[200px] sm:h-[338px] md:h-[528px] rounded-3xl overflow-hidden">
-            {/* Content container with background image */}
             <div 
               className="content flex justify-center"
               style={{
@@ -228,14 +245,11 @@ export default function Landingpage() {
                 height: '100%'
               }}
             >
-              {/* Text content container */}
               <div className="text flex flex-col items-center justify-start w-full mt-[50px] md:mt-[135px] px-4">
                 <div className="w-full max-w-[1280px] -mt-8 sm:-mt-0 flex flex-col items-center justify-start gap-2 md:gap-4">
-                  {/* Main heading */}
                   <div className="text-center text-white text-2xl sm:text-4xl md:text-[64px] font-bold font-['Figtree'] capitalize">
                     Welcome to Cayman Biz Events
                   </div>
-                  {/* Subheading */}
                   <div className="w-full md:w-[783px] text-center text-white text-sm sm:text-xl md:text-2xl font-semibold font-['Figtree'] capitalize leading-tight md:leading-[38.40px]">
                     the ultimate hub for corporate events and networking opportunities in the Cayman Islands!
                   </div>
@@ -247,114 +261,133 @@ export default function Landingpage() {
 
         {/* Calendar Section */}
         <div className="box mx-auto px-2 md:px-4 py-4 md:py-8">
-          {/* Calendar container with max width and padding */}
           <div className="max-w-full mx-5 bg-white rounded-2xl overflow-hidden p-3 md:p-6 -mt-20 md:-mt-36">
-            {/* Toolbar */}
             <CustomToolbar />
             
-            {/* Calendar Grid */}
-            {view === 'month' && (
-              <div className="overflow-x-hidden">
-                {/* Mobile Calendar View */}
-                <div className="block md:hidden">
-                  <div className="flex flex-col gap-3 px-1">
-                    {Array.from({ length: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate() }, (_, i) => {
-                      const day = i + 1;
-                      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-                      const dayEvents = events.filter(event => {
-                        const eventDate = new Date(event.start);
-                        return eventDate.getDate() === day &&
-                              eventDate.getMonth() === currentDate.getMonth() &&
-                              eventDate.getFullYear() === currentDate.getFullYear();
-                      });
-                      
-                      return (
-                        <div key={i} className="bg-[#f2f7fa] rounded-lg overflow-hidden">
-                          <div className="grid grid-cols-12">
-                            {/* Day number and name column */}
-                            <div className="col-span-4 p-5 flex flex-col justify-center">
-                              <div className="text-[#006198] text-3xl font-normal leading-none">{day}</div>
-                              <div className="text-[#4A4C56] text-sm font-normal mt-2">{format(date, 'EEEE')}</div>
-                            </div>
-                            
-                            {/* Event content column */}
-                            <div className="col-span-8 bg-white p-5 flex justify-center items-center min-h-[140px]">
-                              {dayEvents.length > 0 ? (
-                                <div className="w-full">
-                                  {dayEvents.map((event, idx) => (
-                                    <div key={idx} className="mb-2">
-                                      <div className="text-[#006198] text-lg font-normal truncate">
-                                        {event.title}
-                                      </div>
-                                      <div className="text-[#4A4C56] text-sm">
-                                        {format(event.start, 'h:mm a')} - {format(event.end, 'h:mm a')}
-                                      </div>
+            {isLoading ? (
+              <LoadingState />
+            ) : (
+              <>
+                {/* Calendar Views */}
+                {view === 'month' && (
+                  <div className="overflow-x-hidden">
+                    {/* Mobile Calendar View */}
+                    <div className="block md:hidden">
+                      <div className="flex flex-col gap-3 px-1">
+                        {Array.from({ length: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate() }, (_, i) => {
+                          const day = i + 1;
+                          const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                          const dayEvents = getEventsForDate(date);
+                          
+                          return (
+                            <div key={i} className="bg-[#f2f7fa] rounded-lg overflow-hidden">
+                              <div className="grid grid-cols-12">
+                                <div className="col-span-4 p-5 flex flex-col justify-center">
+                                  <div className="text-[#006198] text-3xl font-normal leading-none">{day}</div>
+                                  <div className="text-[#4A4C56] text-sm font-normal mt-2">{format(date, 'EEEE')}</div>
+                                </div>
+                                
+                                <div className={`col-span-8 ${dayEvents.length > 0 ? 'bg-[#FFF0F5]' : 'bg-white'} p-5 flex justify-center items-center min-h-[140px]`}>
+                                  {dayEvents.length > 0 ? (
+                                    <div className="w-full">
+                                      {dayEvents.map((event, idx) => {
+                                        if (!event || !event.start || !event.end) return null;
+                                        
+                                        const isHighlighted = dayEvents.length > 0;
+                                        return (
+                                          <div key={event.id || idx} className="mb-2">
+                                            <div className={`${isHighlighted ? 'text-[#FF69B4]' : 'text-[#006198]'} text-lg font-normal truncate`}>
+                                              {event.title}
+                                            </div>
+                                            <div className="text-[#4A4C56] text-sm">
+                                              {format(new Date(event.start), 'h:mm a')} - {format(new Date(event.end), 'h:mm a')}
+                                            </div>
+                                            {event.description && (
+                                              <div className="text-[#4A4C56] text-sm truncate">
+                                                {event.description}
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
                                     </div>
-                                  ))}
+                                  ) : (
+                                    <div className="text-[#006198] text-lg font-normal text-center">
+                                      No Events Today
+                                    </div>
+                                  )}
                                 </div>
-                              ) : (
-                                <div className="text-[#006198] text-lg font-normal text-center">
-                                  No Events Today
-                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    {/* Desktop Calendar View */}
+                    <div className="hidden md:block">
+                      <CalendarGrid
+                        events={events}
+                        currentDate={currentDate}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {view === 'agenda' && (
+                  <div className="overflow-x-hidden">
+                    <div className="space-y-4">
+                      {events.length > 0 ? (
+                        events
+                          .sort((a, b) => a.start - b.start)
+                          .map((event, index) => (
+                            <div key={event.id} className="p-4 border rounded-lg hover:bg-gray-50">
+                              <div className="font-semibold text-lg text-[#25314c] truncate">{event.title}</div>
+                              <div className="text-sm text-gray-600">
+                                {format(new Date(event.start), 'MMMM d, yyyy h:mm a')} - {format(new Date(event.end), 'h:mm a')}
+                              </div>
+                              {event.description && (
+                                <div className="mt-2 text-sm text-gray-600">{event.description}</div>
                               )}
                             </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                          ))
+                      ) : (
+                        <div className="text-center text-gray-500 py-8">No events found</div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                
-                {/* Desktop Calendar View */}
-                <div className="hidden md:block">
-                  <CalendarGrid
-                    events={events}
-                    currentDate={currentDate}
-                  />
-                </div>
-              </div>
-            )}
-            {view === 'agenda' && (
-              <div className="overflow-x-hidden">
-                <div className="space-y-4">
-                  {events
-                    .sort((a, b) => a.start - b.start)
-                    .map((event, index) => (
-                      <div key={index} className="p-4 border rounded-lg hover:bg-gray-50">
-                        <div className="font-semibold text-lg text-[#25314c] truncate">{event.title}</div>
-                        <div className="text-sm text-gray-600">
-                          {format(event.start, 'MMMM d, yyyy h:mm a')} - {format(event.end, 'h:mm a')}
-                        </div>
+                )}
+
+                {view === 'day' && (
+                  <div className="overflow-x-hidden">
+                    <div className="min-h-[600px] border rounded-lg">
+                      <div className="text-center p-4 border-b bg-gray-50">
+                        <h2 className="text-xl font-semibold text-[#25314c]">
+                          {format(currentDate, 'MMMM d, yyyy')}
+                        </h2>
                       </div>
-                    ))}
-                </div>
-              </div>
-            )}
-            {view === 'day' && (
-              <div className="overflow-x-hidden">
-                <div className="min-h-[600px] border rounded-lg">
-                  <div className="text-center p-4 border-b bg-gray-50">
-                    <h2 className="text-xl font-semibold text-[#25314c]">
-                      {format(currentDate, 'MMMM d, yyyy')}
-                    </h2>
+                      <div className="divide-y">
+                        {events
+                          .filter(event => 
+                            new Date(event.start).toDateString() === currentDate.toDateString()
+                          )
+                          .sort((a, b) => new Date(a.start) - new Date(b.start))
+                          .map((event) => (
+                            <div key={event.id} className="p-4 hover:bg-gray-50">
+                              <div className="font-semibold text-[#25314c] truncate">{event.title}</div>
+                              <div className="text-sm text-gray-600">
+                                {format(new Date(event.start), 'h:mm a')} - {format(new Date(event.end), 'h:mm a')}
+                              </div>
+                              {event.description && (
+                                <div className="mt-2 text-sm text-gray-600">{event.description}</div>
+                              )}
+                            </div>
+                          ))}
+                      </div>
+                    </div>
                   </div>
-                  <div className="divide-y">
-                    {events
-                      .filter(event => 
-                        event.start.toDateString() === currentDate.toDateString()
-                      )
-                      .sort((a, b) => a.start - b.start)
-                      .map((event, index) => (
-                        <div key={index} className="p-4 hover:bg-gray-50">
-                          <div className="font-semibold text-[#25314c] truncate">{event.title}</div>
-                          <div className="text-sm text-gray-600">
-                            {format(event.start, 'h:mm a')} - {format(event.end, 'h:mm a')}
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              </div>
+                )}
+              </>
             )}
           </div>
         </div>

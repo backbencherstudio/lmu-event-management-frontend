@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react'
 import Image from 'next/image';
 import bgimg from '../../../../public/client/background.png';
 import { useForm } from 'react-hook-form';
+import RegisterApis from '../../API/RegisterApi';
+import { toast } from 'react-hot-toast';
 
 export default function Register({ isOpen, onClose }) {
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
     if (isOpen) {
@@ -20,26 +23,27 @@ export default function Register({ isOpen, onClose }) {
 
   const onSubmit = async (data) => {
     try {
-      // Here you can add your form submission logic
-      // For example, an API call:
-      // const response = await fetch('/api/register', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(data),
-      // });
-      
-      // if (response.ok) {
-        console.log('Form submitted successfully:', data);
+      setIsLoading(true);
+      const response = await RegisterApis.createSubscription({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        companyName: data.companyName || '',
+        jobTitle: data.jobTitle || ''
+      });
+
+      if (response.success) {
+        toast.success('Registration successful!');
         reset(); // Reset the form fields
         onClose(); // Close the modal on successful submission
-      // } else {
-      //   throw new Error('Failed to submit form');
-      // }
+      } else {
+        toast.error(response.message || 'Registration failed');
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
-      // You can add error handling here, like showing an error message to the user
+      toast.error(error.message || 'Registration failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -83,6 +87,7 @@ export default function Register({ isOpen, onClose }) {
                       <input
                         {...register("firstName", { required: "First name is required" })}
                         className="self-stretch flex-1 pl-5 pr-4 py-3 bg-[#f2f7fa] rounded-md outline-1 outline-offset-[-1px] outline-[#006198]"
+                        disabled={isLoading}
                       />
                       {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName.message}</p>}
                     </div>
@@ -95,6 +100,7 @@ export default function Register({ isOpen, onClose }) {
                       <input
                         {...register("lastName", { required: "Last name is required" })}
                         className="self-stretch flex-1 pl-5 pr-4 py-3 bg-[#f2f7fa] rounded-md outline outline-1 outline-offset-[-1px] outline-[#006198]"
+                        disabled={isLoading}
                       />
                       {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName.message}</p>}
                     </div>
@@ -113,6 +119,7 @@ export default function Register({ isOpen, onClose }) {
                           }
                         })}
                         className="self-stretch flex-1 pl-5 pr-4 py-3 bg-[#f2f7fa] rounded-md outline outline-1 outline-offset-[-1px] outline-[#006198]"
+                        disabled={isLoading}
                       />
                       {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
                     </div>
@@ -125,6 +132,7 @@ export default function Register({ isOpen, onClose }) {
                       <input
                         {...register("companyName")}
                         className="self-stretch flex-1 pl-5 pr-4 py-3 bg-[#f2f7fa] rounded-md outline outline-1 outline-offset-[-1px] outline-[#006198]"
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -136,6 +144,7 @@ export default function Register({ isOpen, onClose }) {
                       <input
                         {...register("jobTitle")}
                         className="self-stretch flex-1 pl-5 pr-4 py-3 bg-[#f2f7fa] rounded-md outline outline-1 outline-offset-[-1px] outline-[#006198]"
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -152,6 +161,7 @@ export default function Register({ isOpen, onClose }) {
                   type="checkbox"
                   {...register("terms", { required: "You must accept the terms and conditions" })}
                   className="w-[22px] h-[22px] bg-[#006198] rounded border border-[#006198]"
+                  disabled={isLoading}
                 />
                 <span className="text-[#202224] text-base font-normal">I agree to the terms and conditions</span>
               </div>
@@ -159,9 +169,10 @@ export default function Register({ isOpen, onClose }) {
             </div>
             <button
               type="submit"
-              className="w-[214px] h-[50px] px-7 py-3 bg-[#006198] rounded-md inline-flex justify-center items-center gap-2.5 text-white text-base font-medium hover:bg-[#004d7a] transition-colors"
+              className="w-[214px] h-[50px] px-7 py-3 bg-[#006198] rounded-md inline-flex justify-center items-center gap-2.5 text-white text-base font-medium hover:bg-[#004d7a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
             >
-              Create Account
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
         </div>
