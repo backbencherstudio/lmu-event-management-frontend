@@ -90,7 +90,7 @@ const RegisterApis = {
       toast.error(error.message || 'Failed to delete user');
       return {
         success: false,
-        message: error.message || 'Failed to delete user'
+        message: error.message || 'Failed to deletee user'
       };
     }
   }
