@@ -1,17 +1,12 @@
-import React from 'react'
-import Register from './_components/register'
-import Landingpage from './_components/landingpage'
-import Calender from './_calender/calender'
-import Menu from './_components/menu'
-
+import React from "react";
+import Landingpage from "./_components/landingpage";
 
 export default function HomePage() {
   return (
     <>
-        <div className=''>
-
-            <Landingpage />
-        </div>
+      <div className="">
+        <Landingpage />
+      </div>
     </>
-  )
+  );
 }
