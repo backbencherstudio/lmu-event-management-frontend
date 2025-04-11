@@ -1,7 +1,7 @@
 import { CookieHelper } from "../helper/cookie.helper";
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_ENDPOINT || 'http://192.168.4.3:3001';
+const API_URL = 'https://lmu-event-management-backend-production.up.railway.app';
 
 // Get base URL without /api for image URLs
 const getBaseUrl = () => {
