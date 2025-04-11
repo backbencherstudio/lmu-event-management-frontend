@@ -1,13 +1,13 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react';
 import format from 'date-fns/format';
-import bgimg from '../../../../public/client/background.png';
+import bgimg from '../../../../../public/client/background.png';
 import { IoChevronDown } from 'react-icons/io5';
 import DatePickerModal from './DatePickerModal';
 import CalendarGrid from './CalendarGrid';
-import leftarrow from '../../../../public/client/left.svg';
-import rightarrow from '../../../../public/client/right.svg';
-import EventApis from '../../../app/API/EventApi';
+import leftarrow from '../../../../../public/client/left.svg';
+import rightarrow from '../../../../../public/client/right.svg';
+import EventApis from '../../../API/EventApi';
 import { toast } from 'react-hot-toast';
 
 export default function Landingpage() {
