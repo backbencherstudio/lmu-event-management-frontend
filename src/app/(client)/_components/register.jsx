@@ -150,22 +150,6 @@ export default function Register({ isOpen, onClose }) {
                   </div>
                 </div>
               </div>
-              <div className="w-full justify-start">
-                <span className="text-[#202224] text-base font-normal ">By creating account means you agree to the </span>
-                <span className="text-[#006198] text-base font-normal ">Terms and Conditions</span>
-                <span className="text-[#202224] text-base font-normal">,  and our </span>
-                <span className="text-[#006198] text-base font-normal font-['Outfit'] leading-normal">Privacy Policy</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  {...register("terms", { required: "You must accept the terms and conditions" })}
-                  className="w-[22px] h-[22px] bg-[#006198] rounded border border-[#006198]"
-                  disabled={isLoading}
-                />
-                <span className="text-[#202224] text-base font-normal">I agree to the terms and conditions</span>
-              </div>
-              {errors.terms && <p className="text-red-500 text-sm">{errors.terms.message}</p>}
             </div>
             <button
               type="submit"

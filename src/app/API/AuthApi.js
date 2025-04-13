@@ -60,8 +60,7 @@ const AuthApis = {
         // Show success message
         toast.success('Admin login successful!');
 
-        // Redirect to dashboard
-        window.location.href = '/dashboard';
+        // Return success response
         return {
           success: true,
           message: 'Login successful',
@@ -100,7 +99,7 @@ const AuthApis = {
     // Show success message
     toast.success('Successfully logged out!');
 
-    // Redirect to home page
+    // Redirect to main page
     window.location.href = '/';
   },
 };

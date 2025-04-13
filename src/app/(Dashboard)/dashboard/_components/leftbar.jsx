@@ -100,7 +100,7 @@ export default function Leftbar() {
                         className="text-[#717680]"
                       />
                       <div className="justify-start text-[#252b37] text-base font-semibold leading-normal">
-                        Subscriber List
+                        Subscribers
                       </div>
                     </div>
                     <IoChevronForward className="w-4 h-4 text-[#a3a7ae] text-end" />

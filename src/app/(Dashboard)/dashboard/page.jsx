@@ -1,11 +1,14 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { DateRange } from 'react-date-range'
 import { format } from 'date-fns'
 import 'react-date-range/dist/styles.css'
 import 'react-date-range/dist/theme/default.css'
 import EventApis from '../../API/EventApi'
 import { toast } from 'react-hot-toast'
+import { MdDelete, MdEdit } from 'react-icons/md'
+import DeleteConfirmationModal from '../../(client)/_components/DeleteConfirmationModal'
+import EditEventModal from '../../(client)/_components/EditEventModal'
 
 // Utility function to convert 12h to 24h format
 const convert12to24 = (time12h) => {
@@ -61,6 +64,17 @@ export default function Dashboard() {
   const [description, setDescription] = useState(defaultFormState.description)
   const [errors, setErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
+  const [events, setEvents] = useState([])
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    eventId: null,
+    eventName: ''
+  })
+  const [editModal, setEditModal] = useState({
+    isOpen: false,
+    event: null
+  })
 
   const validateForm = () => {
     const newErrors = {}
@@ -133,6 +147,60 @@ export default function Dashboard() {
       } finally {
         setIsLoading(false)
       }
+    }
+  }
+
+  const fetchEvents = async () => {
+    const response = await EventApis.getAllEvents()
+    if (response.success) {
+      setEvents(response.data)
+    }
+  }
+
+  useEffect(() => {
+    fetchEvents()
+  }, [])
+
+  const handleDeleteClick = (event) => {
+    setDeleteModal({
+      isOpen: true,
+      eventId: event.id,
+      eventName: event.name
+    })
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (deleteModal.eventId) {
+      setIsDeleting(true)
+      try {
+        const response = await EventApis.deleteEvent(deleteModal.eventId)
+        if (response.success) {
+          await fetchEvents() // Refresh the events list
+        }
+      } finally {
+        setIsDeleting(false)
+        setDeleteModal({ isOpen: false, eventId: null, eventName: '' })
+      }
+    }
+  }
+
+  const handleEditClick = (event) => {
+    setEditModal({
+      isOpen: true,
+      event: event
+    })
+  }
+
+  const handleEditConfirm = async (updatedData) => {
+    try {
+      const response = await EventApis.updateEvent(editModal.event.id, updatedData)
+      if (response.success) {
+        await fetchEvents() // Refresh the events list
+        setEditModal({ isOpen: false, event: null })
+      }
+    } catch (error) {
+      console.error('Error updating event:', error)
+      toast.error('Failed to update event')
     }
   }
 
@@ -306,6 +374,74 @@ export default function Dashboard() {
           </button>
         </div>
       </main>
+
+      {/* Events Table */}
+      <div className="mt-10">
+        <h2 className="text-xl font-semibold mb-4">All Events</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {events.map((event) => (
+                <tr key={event.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{event.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {event.description.split(' ').slice(0, 5).join(' ')}
+                    {event.description.split(' ').length > 5 ? '...' : ''}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{format(new Date(event.startDate), 'MMM dd, yyyy')}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{format(new Date(event.endDate), 'MMM dd, yyyy')}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{convert24to12(event.startTime)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{convert24to12(event.endTime)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditClick(event)}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 disabled:opacity-50 transition-colors duration-200 rounded hover:bg-blue-50"
+                      >
+                        <MdEdit size={20} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(event)}
+                        disabled={isDeleting}
+                        className="p-1.5 text-gray-400 hover:text-red-600 disabled:opacity-50 transition-colors duration-200 rounded hover:bg-red-50"
+                      >
+                        <MdDelete size={20} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, eventId: null, eventName: '' })}
+        onConfirm={handleDeleteConfirm}
+        eventName={deleteModal.eventName}
+      />
+
+      {/* Edit Event Modal */}
+      <EditEventModal
+        isOpen={editModal.isOpen}
+        onClose={() => setEditModal({ isOpen: false, event: null })}
+        onConfirm={handleEditConfirm}
+        event={editModal.event}
+      />
     </div>
   )
 }

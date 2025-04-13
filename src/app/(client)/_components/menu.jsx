@@ -34,9 +34,6 @@ export default function Menu() {
 
         {/* Desktop Menu */}
         <div className="hidden lg:flex justify-start items-center gap-6">
-          <div className="text-center justify-start text-[#006198] text-lg font-normal font-['Inter'] leading-[28.80px] cursor-pointer hover:text-[#004d7a] transition-colors">Local Podcast</div>
-          <div className="text-center justify-start text-[#006198] text-lg font-normal font-['Inter'] leading-[28.80px] cursor-pointer hover:text-[#004d7a] transition-colors">Contact Us</div>
-          <div className="text-center justify-start text-[#006198] text-lg font-normal font-['Inter'] leading-[28.80px] cursor-pointer hover:text-[#004d7a] transition-colors">Event Calendar</div>
           <div 
             onClick={handleSignupClick}
             className="h-11 px-6 py-2 bg-[#006198] rounded-lg flex justify-center items-center gap-2 cursor-pointer hover:bg-[#004d7a] transition-colors"
@@ -52,9 +49,6 @@ export default function Menu() {
           }`}
         >
           <div className="flex flex-col p-4 gap-4">
-            <div onClick={handleMenuItemClick} className="text-center text-[#006198] text-lg font-normal font-['Inter'] leading-[28.80px] cursor-pointer hover:text-[#004d7a] transition-colors">Local Podcast</div>
-            <div onClick={handleMenuItemClick} className="text-center text-[#006198] text-lg font-normal font-['Inter'] leading-[28.80px] cursor-pointer hover:text-[#004d7a] transition-colors">Contact Us</div>
-            <div onClick={handleMenuItemClick} className="text-center text-[#006198] text-lg font-normal font-['Inter'] leading-[28.80px] cursor-pointer hover:text-[#004d7a] transition-colors">Event Calendar</div>
             <div 
               onClick={handleSignupClick}
               className="h-11 bg-[#006198] rounded-lg flex justify-center items-center cursor-pointer hover:bg-[#004d7a] transition-colors"

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import logo from '../../../../../public/client/logo.svg';
 import AuthApis from '../../../../app/API/AuthApi';
 import { toast } from 'react-hot-toast';
@@ -9,6 +10,7 @@ import { toast } from 'react-hot-toast';
 export default function AdminLogin() {
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const onSubmit = async (data) => {
     try {
@@ -23,8 +25,10 @@ export default function AdminLogin() {
         return;
       }
 
-      // Success is handled by AuthApi (redirect + toast)
+      // Reset form and redirect to dashboard
       reset();
+      // Use window.location.href for immediate navigation
+      window.location.href = '/dashboard';
     } catch (error) {
       toast.error(error.message || 'Login failed. Please try again.');
     } finally {

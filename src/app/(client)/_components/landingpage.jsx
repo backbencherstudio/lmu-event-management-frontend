@@ -36,23 +36,17 @@ export default function Landingpage() {
         // Transform API data to match calendar format
         const formattedEvents = response.data.map(event => {
           try {
-            // Parse the date strings correctly
-            let startDateTime, endDateTime;
+            // Parse the date and time separately
+            const startDate = event.startDate.split('T')[0];
+            const endDate = event.endDate.split('T')[0];
+            
+            // Use the specific time from startTime and endTime fields
+            const startTime = event.startTime || '00:00';
+            const endTime = event.endTime || '23:59';
 
-            // Handle the case where startDate and endDate already include time
-            if (event.startDate.includes('T')) {
-              startDateTime = new Date(event.startDate);
-              endDateTime = new Date(event.endDate);
-            } else {
-              // If date and time are separate, combine them
-              const startDate = event.startDate.split('T')[0];
-              const endDate = event.endDate.split('T')[0];
-              const startTime = event.startTime || '00:00';
-              const endTime = event.endTime || '23:59';
-
-              startDateTime = new Date(`${startDate}T${startTime}`);
-              endDateTime = new Date(`${endDate}T${endTime}`);
-            }
+            // Combine date and time
+            const startDateTime = new Date(`${startDate}T${startTime}:00`);
+            const endDateTime = new Date(`${endDate}T${endTime}:00`);
 
             // Validate the dates
             if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
