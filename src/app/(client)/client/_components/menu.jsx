@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import Image from 'next/image';
-import logo from '../../../../public/client/logo.svg';
+import logo from '../../../../../public/client/logo.svg';
 import Register from './register';
 
 export default function Menu() {
