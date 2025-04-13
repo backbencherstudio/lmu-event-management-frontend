@@ -7,8 +7,8 @@ import 'react-date-range/dist/theme/default.css'
 import EventApis from '../../API/EventApi'
 import { toast } from 'react-hot-toast'
 import { MdDelete, MdEdit } from 'react-icons/md'
-import DeleteConfirmationModal from '../../(client)/_components/DeleteConfirmationModal'
-import EditEventModal from '../../(client)/_components/EditEventModal'
+import DeleteConfirmationModal from '../../(client)/client/_components/DeleteConfirmationModal'
+import EditEventModal from '../../(client)/client/_components/EditEventModal'
 
 // Utility function to convert 12h to 24h format
 const convert12to24 = (time12h) => {
