@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image';
-import bgimg from '../../../../public/client/background.png';
+import bgimg from '../../../../../public/client/background.png';
 import { useForm } from 'react-hook-form';
-import RegisterApis from '../../API/RegisterApi';
+import RegisterApis from '../../../API/RegisterApi';
 import { toast } from 'react-hot-toast';
 
 export default function Register({ isOpen, onClose }) {
