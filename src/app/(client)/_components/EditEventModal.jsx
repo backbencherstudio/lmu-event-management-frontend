@@ -8,8 +8,8 @@ const EditEventModal = ({ isOpen, onClose, onConfirm, event }) => {
   const [formData, setFormData] = useState({
     name: event.name,
     description: event.description,
-    startDate: event.startDate,
-    endDate: event.endDate,
+    startDate: format(new Date(event.startDate), 'yyyy-MM-dd'),
+    endDate: format(new Date(event.endDate), 'yyyy-MM-dd'),
     startTime: event.startTime,
     endTime: event.endTime
   });

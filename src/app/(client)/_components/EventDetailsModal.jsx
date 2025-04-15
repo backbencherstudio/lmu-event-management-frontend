@@ -43,8 +43,23 @@ const EventDetailsModal = ({ isOpen, onClose, events, date }) => {
                       {format(new Date(event.start), 'h:mm a')} - {format(new Date(event.end), 'h:mm a')}
                     </div>
                     {event.description && (
-                      <p className="text-[#344053] text-sm whitespace-pre-wrap">
-                        {event.description}
+                      <p className="text-[#344053] text-sm whitespace-pre-wrap max-h-[100px] overflow-y-auto">
+                        {event.description.split(/(https?:\/\/[^\s]+)/g).map((part, i) => {
+                          if (part.match(/^https?:\/\/[^\s]+$/)) {
+                            return (
+                              <a
+                                key={i}
+                                href={part}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[#006198] hover:underline"
+                              >
+                                {part}
+                              </a>
+                            );
+                          }
+                          return part;
+                        })}
                       </p>
                     )}
                   </div>
