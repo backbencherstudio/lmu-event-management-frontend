@@ -156,7 +156,7 @@ export default function Register({ isOpen, onClose }) {
               className="w-[214px] h-[50px] px-7 py-3 bg-[#006198] rounded-md inline-flex justify-center items-center gap-2.5 text-white text-base font-medium hover:bg-[#004d7a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading}
             >
-              {isLoading ? 'Creating Account...' : 'Create Account'}
+              {isLoading ? 'Creating Account...' : 'Register'}
             </button>
           </form>
         </div>
