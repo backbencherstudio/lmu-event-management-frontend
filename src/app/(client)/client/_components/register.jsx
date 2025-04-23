@@ -75,7 +75,7 @@ export default function Register({ isOpen, onClose }) {
               <div className="flex flex-col justify-start items-start gap-6">
                 <div className="flex flex-col justify-start items-center gap-7">
                   <div className="flex flex-col justify-start items-start gap-[7px]">
-                    <div className="justify-start text-[#1d1f2c] text-2xl sm:text-[32px] font-medium ">Sign up here for weekly event updates!</div>
+                    <div className="justify-start text-[#1d1f2c] text-2xl sm:text-[32px] font-medium ">Register here for weekly event updates!</div>
                   </div>
                 </div>
                 <div className="self-stretch inline-flex justify-start items-start gap-[26px] flex-wrap content-start">
@@ -127,7 +127,7 @@ export default function Register({ isOpen, onClose }) {
                   <div className="w-full h-[81px] inline-flex flex-col justify-start items-start gap-[5px]">
                     <div className="self-stretch flex-1 flex flex-col justify-start items-start gap-2.5">
                       <div className="w-[250px] inline-flex justify-start items-start gap-2.5">
-                        <div className="justify-start text-[#1d1f2c] text-base font-medium ">Company Name (optional)</div>
+                        <div className="justify-start text-[#1d1f2c] text-base font-medium ">Company Name</div>
                       </div>
                       <input
                         {...register("companyName")}
@@ -139,7 +139,7 @@ export default function Register({ isOpen, onClose }) {
                   <div className="w-full h-20 inline-flex flex-col justify-start items-start gap-[5px]">
                     <div className="self-stretch flex-1 flex flex-col justify-start items-start gap-2.5">
                       <div className="w-[250px] inline-flex justify-start items-start gap-2.5">
-                        <div className="justify-start text-[#1d1f2c] text-base font-medium ">Job Title (optional)</div>
+                        <div className="justify-start text-[#1d1f2c] text-base font-medium ">Job Title</div>
                       </div>
                       <input
                         {...register("jobTitle")}
@@ -156,7 +156,7 @@ export default function Register({ isOpen, onClose }) {
               className="w-[214px] h-[50px] px-7 py-3 bg-[#006198] rounded-md inline-flex justify-center items-center gap-2.5 text-white text-base font-medium hover:bg-[#004d7a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading}
             >
-              {isLoading ? 'Creating Account...' : 'Create Account'}
+              {isLoading ? 'Creating Account...' : 'Register'}
             </button>
           </form>
         </div>

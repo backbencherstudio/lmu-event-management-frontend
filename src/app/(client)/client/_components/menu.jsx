@@ -38,7 +38,7 @@ export default function Menu() {
             onClick={handleSignupClick}
             className="h-11 px-6 py-2 bg-[#006198] rounded-lg flex justify-center items-center gap-2 cursor-pointer hover:bg-[#004d7a] transition-colors"
           >
-            <div className="text-center justify-start text-white text-lg font-medium font-['Inter'] leading-[28.80px]">Sign up </div>
+            <div className="text-center justify-start text-white text-lg font-medium font-['Inter'] leading-[28.80px]">Register</div>
           </div>
         </div>
 
@@ -53,7 +53,7 @@ export default function Menu() {
               onClick={handleSignupClick}
               className="h-11 bg-[#006198] rounded-lg flex justify-center items-center cursor-pointer hover:bg-[#004d7a] transition-colors"
             >
-              <div className="text-center text-white text-lg font-medium font-['Inter'] leading-[28.80px]">Sign up </div>
+              <div className="text-center text-white text-lg font-medium font-['Inter'] leading-[28.80px]">Register</div>
             </div>
           </div>
         </div>

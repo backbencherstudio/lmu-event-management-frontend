@@ -6,7 +6,8 @@ import 'react-date-range/dist/styles.css'
 import 'react-date-range/dist/theme/default.css'
 import EventApis from '../../API/EventApi'
 import { toast } from 'react-hot-toast'
-import { MdDelete, MdEdit } from 'react-icons/md'
+import { MdDelete, MdEdit, MdDownload } from 'react-icons/md'
+import * as XLSX from 'xlsx'
 import DeleteConfirmationModal from '../../(client)/client/_components/DeleteConfirmationModal'
 import EditEventModal from '../../(client)/client/_components/EditEventModal'
 
@@ -204,6 +205,36 @@ export default function Dashboard() {
     }
   }
 
+  // Handle download function
+  const handleDownload = () => {
+    try {
+      // Prepare data for Excel
+      const excelData = events.map(event => ({
+        'Event Name': event.name,
+        'Description': event.description,
+        'Start Date': format(new Date(event.startDate), 'MMM dd, yyyy'),
+        'End Date': format(new Date(event.endDate), 'MMM dd, yyyy'),
+        'Start Time': convert24to12(event.startTime),
+        'End Time': convert24to12(event.endTime)
+      }));
+
+      // Create worksheet
+      const ws = XLSX.utils.json_to_sheet(excelData);
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Events");
+
+      // Generate Excel file
+      XLSX.writeFile(wb, `events_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      
+      toast.success('Excel file downloaded successfully!');
+    } catch (error) {
+      console.error('Error downloading Excel file:', error);
+      toast.error('Failed to download Excel file');
+    }
+  };
+
   return (
     <div className="p-8 pb-12 bg-white">
       {/* Header Section */}
@@ -377,7 +408,16 @@ export default function Dashboard() {
 
       {/* Events Table */}
       <div className="mt-10">
-        <h2 className="text-xl font-semibold mb-4">All Events</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">All Events</h2>
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <MdDownload className="w-5 h-5" />
+            <span>Download Excel</span>
+          </button>
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">

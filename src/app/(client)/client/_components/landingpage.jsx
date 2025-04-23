@@ -25,6 +25,26 @@ export default function Landingpage() {
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [showEventModal, setShowEventModal] = useState(false);
 
+  // Helper function to render description with clickable links
+  const renderDescriptionWithLinks = (description) => {
+    return description.split(/(https?:\/\/[^\s]+)/g).map((part, i) => {
+      if (part.match(/^https?:\/\/[^\s]+$/)) {
+        return (
+          <a
+            key={i}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#006198] hover:underline"
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
   // Fetch events from API
   const fetchEvents = async () => {
     setIsLoading(true);
@@ -357,7 +377,9 @@ export default function Landingpage() {
                                 {format(new Date(event.start), 'MMMM d, yyyy h:mm a')} - {format(new Date(event.end), 'h:mm a')}
                               </div>
                               {event.description && (
-                                <div className="mt-2 text-sm text-gray-600">{event.description}</div>
+                                <div className="mt-2 text-sm text-gray-600">
+                                  {renderDescriptionWithLinks(event.description)}
+                                </div>
                               )}
                             </div>
                           ))
@@ -389,7 +411,9 @@ export default function Landingpage() {
                                 {format(new Date(event.start), 'h:mm a')} - {format(new Date(event.end), 'h:mm a')}
                               </div>
                               {event.description && (
-                                <div className="mt-2 text-sm text-gray-600">{event.description}</div>
+                                <div className="mt-2 text-sm text-gray-600">
+                                  {renderDescriptionWithLinks(event.description)}
+                                </div>
                               )}
                             </div>
                           ))}
