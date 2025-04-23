@@ -9,6 +9,7 @@ import leftarrow from '../../../../../public/client/left.svg';
 import rightarrow from '../../../../../public/client/right.svg';
 import EventApis from '../../../API/EventApi';
 import { toast } from 'react-hot-toast';
+import EventDetailsModal from './EventDetailsModal';
 
 export default function Landingpage() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -19,6 +20,10 @@ export default function Landingpage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const buttonRef = useRef(null);
+  // Add states for event details modal
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedEvents, setSelectedEvents] = useState([]);
+  const [showEventModal, setShowEventModal] = useState(false);
 
   // Fetch events from API
   const fetchEvents = async () => {
@@ -120,6 +125,13 @@ export default function Landingpage() {
         eventDate.getFullYear() === date.getFullYear()
       );
     });
+  };
+
+  // Add handler for day click
+  const handleDayClick = (date, dayEvents) => {
+    setSelectedDate(date);
+    setSelectedEvents(dayEvents);
+    setShowEventModal(true);
   };
 
   // Custom toolbar component
@@ -274,7 +286,11 @@ export default function Landingpage() {
                           const dayEvents = getEventsForDate(date);
                           
                           return (
-                            <div key={i} className="bg-[#f2f7fa] rounded-lg overflow-hidden">
+                            <div 
+                              key={i} 
+                              onClick={() => handleDayClick(date, dayEvents)}
+                              className="bg-[#f2f7fa] rounded-lg overflow-hidden cursor-pointer hover:bg-[#e5f0f7] transition-colors"
+                            >
                               <div className="grid grid-cols-12">
                                 <div className="col-span-4 p-5 flex flex-col justify-center">
                                   <div className="text-[#006198] text-3xl font-normal leading-none">{day}</div>
@@ -386,6 +402,14 @@ export default function Landingpage() {
           </div>
         </div>
       </div>
+
+      {/* Event Details Modal - Will work for both mobile and desktop */}
+      <EventDetailsModal
+        isOpen={showEventModal}
+        onClose={() => setShowEventModal(false)}
+        events={selectedEvents}
+        date={selectedDate}
+      />
     </>
   );
 }
