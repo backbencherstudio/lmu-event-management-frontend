@@ -37,58 +37,27 @@ export default function Landingpage() {
     console.log('User timezone:', timezone);
   }, []);
 
-  // Convert 12-hour format to 24-hour format
-  const convertTo24Hour = (timeStr) => {
-    if (!timeStr) return '00:00';
-    const [time, modifier] = timeStr.split(' ');
-    let [hours, minutes] = time.split(':');
-
-    if (hours === '12') {
-      hours = '00';
-    }
-
-    if (modifier === 'PM') {
-      hours = parseInt(hours, 10) + 12;
-    }
-
-    return `${hours.padStart(2, '0')}:${minutes}`;
-  };
-
-  // Safely parse date and time
-  const parseDateAndTime = (dateStr, timeStr) => {
+  // Format time with timezone consideration
+  const formatEventTime = (dateTime) => {
     try {
-      // Ensure we have valid inputs
-      if (!dateStr || !timeStr) {
-        console.error('Invalid date or time:', { dateStr, timeStr });
-        return null;
+      const date = new Date(dateTime);
+      if (isNaN(date.getTime())) {
+        console.error('Invalid date:', dateTime);
+        return 'Invalid time';
       }
-
-      // Convert time to 24-hour format if it's in 12-hour format
-      const time24 = timeStr.includes('M') ? convertTo24Hour(timeStr) : timeStr;
-
-      // Combine date and time with explicit timezone
-      const isoString = `${dateStr}T${time24}:00`;
       
-      // Parse as ISO string in Cayman timezone
-      return formatInTimeZone(
-        parseISO(isoString),
-        BASE_TIMEZONE,
-        "yyyy-MM-dd'T'HH:mm:ssXXX"
-      );
+      // Format in user's local timezone
+      const timeStr = date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: userTimezone
+      });
+      
+      return timeStr;
     } catch (error) {
-      console.error('Error parsing date and time:', error);
-      return null;
-    }
-  };
-
-  // Format date for display in user's timezone
-  const formatDateInUserTimezone = (date, formatStr) => {
-    try {
-      if (!date) return '';
-      return formatInTimeZone(new Date(date), userTimezone || BASE_TIMEZONE, formatStr);
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return format(new Date(date), formatStr);
+      console.error('Error formatting time:', error);
+      return 'Error';
     }
   };
 
@@ -105,18 +74,18 @@ export default function Landingpage() {
       if (response.success && Array.isArray(response.data)) {
         const formattedEvents = response.data.map(event => {
           try {
-            // Parse dates with timezone consideration
-            const startDateTime = parseDateAndTime(
-              event.startDate.split('T')[0],
-              event.startTime || '00:00'
-            );
-            const endDateTime = parseDateAndTime(
-              event.endDate.split('T')[0],
-              event.endTime || '23:59'
-            );
+            // Parse the date and time with explicit timezone
+            const startDate = event.startDate.split('T')[0];
+            const endDate = event.endDate.split('T')[0];
+            const startTime = event.startTime || '00:00';
+            const endTime = event.endTime || '23:59';
 
-            if (!startDateTime || !endDateTime) {
-              console.error('Invalid date conversion for event:', {
+            // Create dates with explicit timezone (Cayman Islands)
+            const startDateTime = new Date(`${startDate}T${startTime}:00-05:00`); // Cayman Islands is UTC-5
+            const endDateTime = new Date(`${endDate}T${endTime}:00-05:00`);
+
+            if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+              console.error('Invalid date for event:', {
                 event,
                 startDateTime,
                 endDateTime
@@ -127,11 +96,10 @@ export default function Landingpage() {
             return {
               id: event.id,
               title: event.name || 'Untitled Event',
-              start: new Date(startDateTime),
-              end: new Date(endDateTime),
+              start: startDateTime,
+              end: endDateTime,
               description: event.description || '',
-              // Store original timezone for reference
-              originalTimezone: BASE_TIMEZONE
+              originalTimezone: 'America/Cayman'
             };
           } catch (error) {
             console.error('Error processing event:', event, error);
@@ -139,7 +107,6 @@ export default function Landingpage() {
           }
         }).filter(event => event !== null);
 
-        console.log('Final formatted events:', formattedEvents);
         setEvents(formattedEvents);
         setTotalPages(response.totalPages || 1);
       } else {
@@ -148,7 +115,7 @@ export default function Landingpage() {
       }
     } catch (error) {
       console.error('Error fetching events:', error);
-      toast.error('Failed to load events. Please try again.');
+      toast.error('Failed to load events. Please try again...');
     } finally {
       setIsLoading(false);
     }
@@ -389,7 +356,7 @@ export default function Landingpage() {
                                               {event.title}
                                             </div>
                                             <div className="text-[#4A4C56] text-sm">
-                                              {formatDateInUserTimezone(event.start, 'MMM d, h:mm a')} - {formatDateInUserTimezone(event.end, 'MMM d, h:mm a')}
+                                              {formatEventTime(event.start)} - {formatEventTime(event.end)}
                                               <span className="text-xs ml-2 text-gray-500">({userTimezone})</span>
                                             </div>
                                             {event.description && (
@@ -434,7 +401,7 @@ export default function Landingpage() {
                             <div key={event.id} className="p-4 border rounded-lg hover:bg-gray-50">
                               <div className="font-semibold text-lg text-[#25314c] truncate">{event.title}</div>
                               <div className="text-sm text-gray-600">
-                                {formatDateInUserTimezone(event.start, 'MMMM d, yyyy h:mm a')} - {formatDateInUserTimezone(event.end, 'MMMM d, yyyy h:mm a')}
+                                {formatEventTime(event.start)} - {formatEventTime(event.end)}
                                 <span className="text-xs ml-2 text-gray-500">({userTimezone})</span>
                               </div>
                               {event.description && (
@@ -469,7 +436,7 @@ export default function Landingpage() {
                             <div key={event.id} className="p-4 hover:bg-gray-50">
                               <div className="font-semibold text-[#25314c] truncate">{event.title}</div>
                               <div className="text-sm text-gray-600">
-                                {formatDateInUserTimezone(event.start, 'h:mm a')} - {formatDateInUserTimezone(event.end, 'h:mm a')}
+                                {formatEventTime(event.start)} - {formatEventTime(event.end)}
                                 <span className="text-xs ml-2 text-gray-500">({userTimezone})</span>
                               </div>
                               {event.description && (
