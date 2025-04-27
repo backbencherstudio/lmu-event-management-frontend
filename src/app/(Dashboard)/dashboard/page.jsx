@@ -322,7 +322,8 @@ export default function Dashboard() {
                     showPreview={true}
                     moveRangeOnFirstSelection={false}
                     retainEndDateOnFirstSelection={true}
-                    minDate={new Date()}
+                    minDate={new Date('1900-01-01')}
+                    maxDate={new Date('2100-12-31')}
                   />
                 </div>
               </div>
