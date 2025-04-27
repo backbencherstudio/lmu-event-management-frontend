@@ -122,21 +122,32 @@ export default function Dashboard() {
     if (validateForm()) {
       setIsLoading(true)
       try {
+        // Ensure times are in 24-hour format
+        const startTime24 = timeRange.startTime;
+        const endTime24 = timeRange.endTime;
+        
+        // Validate end time is after start time
+        const startDateTime = new Date(`2000-01-01T${startTime24}`);
+        const endDateTime = new Date(`2000-01-01T${endTime24}`);
+        
+        if (endDateTime <= startDateTime) {
+          toast.error('End time must be after start time');
+          return;
+        }
+
         const formData = {
           name,
-          date: {
-            startDate: format(dateRange[0].startDate, 'yyyy-MM-dd'),
-            endDate: format(dateRange[0].endDate, 'yyyy-MM-dd')
-          },
-          time: {
-            startTime: timeRange.startTime,
-            endTime: timeRange.endTime
-          },
-          description
+          startDate: format(dateRange[0].startDate, 'yyyy-MM-dd'),
+          endDate: format(dateRange[0].endDate, 'yyyy-MM-dd'),
+          startTime: startTime24,
+          endTime: endTime24,
+          description,
+          timezone: 'America/Cayman' // Add timezone
         }
         
         const response = await EventApis.createEvent(formData)
         if (response.success) {
+          await fetchEvents() // Refresh the events list
           resetForm()
           toast.success('Event created successfully')
         } else {

@@ -6,30 +6,30 @@ const EventApis = {
    * Create a new event
    * @param {Object} data - Event data
    * @param {string} data.name - Event name
-   * @param {Object} data.date - Event date range
-   * @param {string} data.date.startDate - Start date (YYYY-MM-DD)
-   * @param {string} data.date.endDate - End date (YYYY-MM-DD)
-   * @param {Object} data.time - Event time range
-   * @param {string} data.time.startTime - Start time (HH:mm)
-   * @param {string} data.time.endTime - End time (HH:mm)
+   * @param {string} data.startDate - Start date (YYYY-MM-DD)
+   * @param {string} data.endDate - End date (YYYY-MM-DD)
+   * @param {string} data.startTime - Start time (HH:mm)
+   * @param {string} data.endTime - End time (HH:mm)
    * @param {string} data.description - Event description
+   * @param {string} data.timezone - Event timezone
    * @returns {Promise<Object>} Created event data
    */
   createEvent: async (data) => {
     try {
       // Validate required fields
-      if (!data.name || !data.date || !data.time || !data.description) {
+      if (!data.name || !data.startDate || !data.endDate || !data.startTime || !data.endTime || !data.description) {
         throw new Error('All fields are required');
       }
 
       // Format the data to match API expectations
       const eventData = {
         name: data.name,
-        startDate: data.date.startDate,
-        endDate: data.date.endDate,
-        startTime: data.time.startTime,
-        endTime: data.time.endTime,
-        description: data.description
+        startDate: data.startDate,
+        endDate: data.endDate,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        description: data.description,
+        timezone: data.timezone || 'America/Cayman'
       };
 
       const response = await axiosClient.post('/event', eventData);
