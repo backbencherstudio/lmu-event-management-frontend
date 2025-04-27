@@ -1,8 +1,8 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react';
 import format from 'date-fns/format';
-import parseISO from 'date-fns/parseISO';
-import { formatInTimeZone, getTimezoneOffset } from 'date-fns-tz';
+import { parseISO } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import bgimg from '../../../../../public/client/background.png';
 import { IoChevronDown } from 'react-icons/io5';
 import DatePickerModal from './DatePickerModal';
@@ -37,19 +37,46 @@ export default function Landingpage() {
     console.log('User timezone:', timezone);
   }, []);
 
-  // Convert time from Cayman to user's local time
-  const convertToUserTime = (dateStr, timeStr) => {
-    try {
-      // Combine date and time
-      const combinedDateTime = `${dateStr}T${timeStr}`;
-      
-      // Parse the ISO string
-      const parsedDate = parseISO(combinedDateTime);
+  // Convert 12-hour format to 24-hour format
+  const convertTo24Hour = (timeStr) => {
+    if (!timeStr) return '00:00';
+    const [time, modifier] = timeStr.split(' ');
+    let [hours, minutes] = time.split(':');
 
-      // Format in user's timezone
-      return formatInTimeZone(parsedDate, userTimezone || BASE_TIMEZONE, 'yyyy-MM-dd HH:mm:ss');
+    if (hours === '12') {
+      hours = '00';
+    }
+
+    if (modifier === 'PM') {
+      hours = parseInt(hours, 10) + 12;
+    }
+
+    return `${hours.padStart(2, '0')}:${minutes}`;
+  };
+
+  // Safely parse date and time
+  const parseDateAndTime = (dateStr, timeStr) => {
+    try {
+      // Ensure we have valid inputs
+      if (!dateStr || !timeStr) {
+        console.error('Invalid date or time:', { dateStr, timeStr });
+        return null;
+      }
+
+      // Convert time to 24-hour format if it's in 12-hour format
+      const time24 = timeStr.includes('M') ? convertTo24Hour(timeStr) : timeStr;
+
+      // Combine date and time with explicit timezone
+      const isoString = `${dateStr}T${time24}:00`;
+      
+      // Parse as ISO string in Cayman timezone
+      return formatInTimeZone(
+        parseISO(isoString),
+        BASE_TIMEZONE,
+        "yyyy-MM-dd'T'HH:mm:ssXXX"
+      );
     } catch (error) {
-      console.error('Error converting to user time:', error);
+      console.error('Error parsing date and time:', error);
       return null;
     }
   };
@@ -57,6 +84,7 @@ export default function Landingpage() {
   // Format date for display in user's timezone
   const formatDateInUserTimezone = (date, formatStr) => {
     try {
+      if (!date) return '';
       return formatInTimeZone(new Date(date), userTimezone || BASE_TIMEZONE, formatStr);
     } catch (error) {
       console.error('Error formatting date:', error);
@@ -77,17 +105,15 @@ export default function Landingpage() {
       if (response.success && Array.isArray(response.data)) {
         const formattedEvents = response.data.map(event => {
           try {
-            // Parse the date and time separately
-            const startDate = event.startDate.split('T')[0];
-            const endDate = event.endDate.split('T')[0];
-            
-            // Use the specific time from startTime and endTime fields
-            const startTime = event.startTime || '00:00';
-            const endTime = event.endTime || '23:59';
-
-            // Convert times to user's timezone
-            const startDateTime = convertToUserTime(startDate, startTime);
-            const endDateTime = convertToUserTime(endDate, endTime);
+            // Parse dates with timezone consideration
+            const startDateTime = parseDateAndTime(
+              event.startDate.split('T')[0],
+              event.startTime || '00:00'
+            );
+            const endDateTime = parseDateAndTime(
+              event.endDate.split('T')[0],
+              event.endTime || '23:59'
+            );
 
             if (!startDateTime || !endDateTime) {
               console.error('Invalid date conversion for event:', {
@@ -103,7 +129,9 @@ export default function Landingpage() {
               title: event.name || 'Untitled Event',
               start: new Date(startDateTime),
               end: new Date(endDateTime),
-              description: event.description || ''
+              description: event.description || '',
+              // Store original timezone for reference
+              originalTimezone: BASE_TIMEZONE
             };
           } catch (error) {
             console.error('Error processing event:', event, error);
@@ -361,7 +389,7 @@ export default function Landingpage() {
                                               {event.title}
                                             </div>
                                             <div className="text-[#4A4C56] text-sm">
-                                              {formatDateInUserTimezone(event.start, 'h:mm a')} - {formatDateInUserTimezone(event.end, 'h:mm a')}
+                                              {formatDateInUserTimezone(event.start, 'MMM d, h:mm a')} - {formatDateInUserTimezone(event.end, 'MMM d, h:mm a')}
                                               <span className="text-xs ml-2 text-gray-500">({userTimezone})</span>
                                             </div>
                                             {event.description && (
@@ -406,7 +434,7 @@ export default function Landingpage() {
                             <div key={event.id} className="p-4 border rounded-lg hover:bg-gray-50">
                               <div className="font-semibold text-lg text-[#25314c] truncate">{event.title}</div>
                               <div className="text-sm text-gray-600">
-                                {formatDateInUserTimezone(event.start, 'MMMM d, yyyy h:mm a')} - {formatDateInUserTimezone(event.end, 'h:mm a')}
+                                {formatDateInUserTimezone(event.start, 'MMMM d, yyyy h:mm a')} - {formatDateInUserTimezone(event.end, 'MMMM d, yyyy h:mm a')}
                                 <span className="text-xs ml-2 text-gray-500">({userTimezone})</span>
                               </div>
                               {event.description && (
