@@ -1,20 +1,14 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react';
 import format from 'date-fns/format';
-import parseISO from 'date-fns/parseISO';
-import { formatInTimeZone, getTimezoneOffset } from 'date-fns-tz';
-import bgimg from '../../../../../public/client/background.png';
+import bgimg from '../../../../public/client/background.png';
 import { IoChevronDown } from 'react-icons/io5';
 import DatePickerModal from './DatePickerModal';
 import CalendarGrid from './CalendarGrid';
-import leftarrow from '../../../../../public/client/left.svg';
-import rightarrow from '../../../../../public/client/right.svg';
-import EventApis from '../../../API/EventApi';
+import leftarrow from '../../../../public/client/left.svg';
+import rightarrow from '../../../../public/client/right.svg';
+import EventApis from '../../../app/API/EventApi';
 import { toast } from 'react-hot-toast';
-import EventDetailsModal from './EventDetailsModal';
-
-// Base timezone for Cayman Islands where events are created
-const BASE_TIMEZONE = 'America/Cayman';
 
 export default function Landingpage() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -25,44 +19,6 @@ export default function Landingpage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const buttonRef = useRef(null);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedEvents, setSelectedEvents] = useState([]);
-  const [showEventModal, setShowEventModal] = useState(false);
-  const [userTimezone, setUserTimezone] = useState('');
-
-  // Get user's timezone on component mount
-  useEffect(() => {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    setUserTimezone(timezone);
-    console.log('User timezone:', timezone);
-  }, []);
-
-  // Convert time from Cayman to user's local time
-  const convertToUserTime = (dateStr, timeStr) => {
-    try {
-      // Combine date and time
-      const combinedDateTime = `${dateStr}T${timeStr}`;
-      
-      // Parse the ISO string
-      const parsedDate = parseISO(combinedDateTime);
-
-      // Format in user's timezone
-      return formatInTimeZone(parsedDate, userTimezone || BASE_TIMEZONE, 'yyyy-MM-dd HH:mm:ss');
-    } catch (error) {
-      console.error('Error converting to user time:', error);
-      return null;
-    }
-  };
-
-  // Format date for display in user's timezone
-  const formatDateInUserTimezone = (date, formatStr) => {
-    try {
-      return formatInTimeZone(new Date(date), userTimezone || BASE_TIMEZONE, formatStr);
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return format(new Date(date), formatStr);
-    }
-  };
 
   // Fetch events from API
   const fetchEvents = async () => {
@@ -71,10 +27,13 @@ export default function Landingpage() {
       console.log('Fetching events...');
       const response = await EventApis.getAllEvents({
         page: currentPage,
-        limit: 50
+        limit: 50 // Fetch more events at once for calendar view
       });
 
+      console.log('Events API Response:', response);
+
       if (response.success && Array.isArray(response.data)) {
+        // Transform API data to match calendar format
         const formattedEvents = response.data.map(event => {
           try {
             // Parse the date and time separately
@@ -85,12 +44,13 @@ export default function Landingpage() {
             const startTime = event.startTime || '00:00';
             const endTime = event.endTime || '23:59';
 
-            // Convert times to user's timezone
-            const startDateTime = convertToUserTime(startDate, startTime);
-            const endDateTime = convertToUserTime(endDate, endTime);
+            // Combine date and time
+            const startDateTime = new Date(`${startDate}T${startTime}:00`);
+            const endDateTime = new Date(`${endDate}T${endTime}:00`);
 
-            if (!startDateTime || !endDateTime) {
-              console.error('Invalid date conversion for event:', {
+            // Validate the dates
+            if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+              console.error('Invalid date for event:', {
                 event,
                 startDateTime,
                 endDateTime
@@ -98,18 +58,25 @@ export default function Landingpage() {
               return null;
             }
 
+            console.log('Successfully processed event:', {
+              id: event.id,
+              name: event.name,
+              start: startDateTime.toISOString(),
+              end: endDateTime.toISOString()
+            });
+
             return {
               id: event.id,
               title: event.name || 'Untitled Event',
-              start: new Date(startDateTime),
-              end: new Date(endDateTime),
+              start: startDateTime,
+              end: endDateTime,
               description: event.description || ''
             };
           } catch (error) {
             console.error('Error processing event:', event, error);
             return null;
           }
-        }).filter(event => event !== null);
+        }).filter(event => event !== null); // Remove any events that failed to process
 
         console.log('Final formatted events:', formattedEvents);
         setEvents(formattedEvents);
@@ -120,7 +87,7 @@ export default function Landingpage() {
       }
     } catch (error) {
       console.error('Error fetching events:', error);
-      toast.error('Failed to load events. Please try again.');
+      toast.error('Failed to load events. Please try again...');
     } finally {
       setIsLoading(false);
     }
@@ -129,37 +96,14 @@ export default function Landingpage() {
   // Fetch events when component mounts or when page changes
   useEffect(() => {
     fetchEvents();
-  }, [currentPage, userTimezone]); // Re-fetch when timezone changes
+  }, [currentPage]);
 
-  // Helper function to render description with clickable links
-  const renderDescriptionWithLinks = (description) => {
-    return description.split(/(https?:\/\/[^\s]+)/g).map((part, i) => {
-      if (part.match(/^https?:\/\/[^\s]+$/)) {
-        return (
-          <a
-            key={i}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#006198] hover:underline"
-          >
-            {part}
-          </a>
-        );
-      }
-      return part;
-    });
+  const handleNavigate = (date) => {
+    setCurrentDate(date);
   };
 
-  // Helper function to format date with timezone
-  const formatDateWithTimezone = (date, formatStr) => {
-    try {
-      const zonedDate = formatInTimeZone(date, userTimezone || BASE_TIMEZONE, 'yyyy-MM-dd HH:mm:ss');
-      return format(zonedDate, formatStr);
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return format(date, formatStr);
-    }
+  const handleViewChange = (newView) => {
+    setView(newView);
   };
 
   // Helper function to check if a date has events
@@ -176,13 +120,6 @@ export default function Landingpage() {
         eventDate.getFullYear() === date.getFullYear()
       );
     });
-  };
-
-  // Add handler for day click
-  const handleDayClick = (date, dayEvents) => {
-    setSelectedDate(date);
-    setSelectedEvents(dayEvents);
-    setShowEventModal(true);
   };
 
   // Custom toolbar component
@@ -236,7 +173,7 @@ export default function Landingpage() {
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}
               onSelect={(date) => {
-                setCurrentDate(date);
+                handleNavigate(date);
               }}
               currentDate={currentDate}
             />
@@ -245,7 +182,7 @@ export default function Landingpage() {
         <div className="flex items-center gap-2 sm:gap-4">
           <div className="rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] outline outline-1 outline-offset-[-1px] outline-[#cfd4dc] flex justify-start items-start overflow-hidden">
             <button
-              onClick={() => setView('agenda')}
+              onClick={() => handleViewChange('agenda')}
               className={`min-h-10 md:min-h-12 px-3 sm:px-4 md:px-5 py-2 md:py-3 bg-white border-r border-[#cfd4dc] flex justify-center items-center gap-1 md:gap-2 ${
                 view === 'agenda' ? 'bg-[#f8f9fb] text-[#006198] font-semibold' : 'text-[#4a4c56]'
               }`}
@@ -253,7 +190,7 @@ export default function Landingpage() {
               <span className="text-xs sm:text-sm md:text-base font-['Outfit'] leading-tight">List</span>
             </button>
             <button
-              onClick={() => setView('month')}
+              onClick={() => handleViewChange('month')}
               className={`min-h-10 md:min-h-12 px-3 sm:px-4 md:px-5 py-2 md:py-3 border-r border-[#cfd4dc] flex justify-center items-center gap-1 md:gap-2 ${
                 view === 'month' ? 'bg-[#f8f9fb] text-[#006198] font-semibold' : 'bg-white text-[#4a4c56]'
               }`}
@@ -261,7 +198,7 @@ export default function Landingpage() {
               <span className="text-xs sm:text-sm md:text-base font-['Outfit'] leading-tight">Month</span>
             </button>
             <button
-              onClick={() => setView('day')}
+              onClick={() => handleViewChange('day')}
               className={`hidden md:flex min-h-10 md:min-h-12 px-3 sm:px-4 md:px-5 py-2 md:py-3 justify-center items-center gap-1 md:gap-2 ${
                 view === 'day' ? 'bg-[#f8f9fb] text-[#006198] font-semibold' : 'bg-white text-[#4a4c56]'
               }`}
@@ -337,11 +274,7 @@ export default function Landingpage() {
                           const dayEvents = getEventsForDate(date);
                           
                           return (
-                            <div 
-                              key={i} 
-                              onClick={() => handleDayClick(date, dayEvents)}
-                              className="bg-[#f2f7fa] rounded-lg overflow-hidden cursor-pointer hover:bg-[#e5f0f7] transition-colors"
-                            >
+                            <div key={i} className="bg-[#f2f7fa] rounded-lg overflow-hidden">
                               <div className="grid grid-cols-12">
                                 <div className="col-span-4 p-5 flex flex-col justify-center">
                                   <div className="text-[#006198] text-3xl font-normal leading-none">{day}</div>
@@ -361,8 +294,7 @@ export default function Landingpage() {
                                               {event.title}
                                             </div>
                                             <div className="text-[#4A4C56] text-sm">
-                                              {formatDateInUserTimezone(event.start, 'h:mm a')} - {formatDateInUserTimezone(event.end, 'h:mm a')}
-                                              <span className="text-xs ml-2 text-gray-500">({userTimezone})</span>
+                                              {format(new Date(event.start), 'h:mm a')} - {format(new Date(event.end), 'h:mm a')}
                                             </div>
                                             {event.description && (
                                               <div className="text-[#4A4C56] text-sm truncate">
@@ -406,13 +338,10 @@ export default function Landingpage() {
                             <div key={event.id} className="p-4 border rounded-lg hover:bg-gray-50">
                               <div className="font-semibold text-lg text-[#25314c] truncate">{event.title}</div>
                               <div className="text-sm text-gray-600">
-                                {formatDateInUserTimezone(event.start, 'MMMM d, yyyy h:mm a')} - {formatDateInUserTimezone(event.end, 'h:mm a')}
-                                <span className="text-xs ml-2 text-gray-500">({userTimezone})</span>
+                                {format(new Date(event.start), 'MMMM d, yyyy h:mm a')} - {format(new Date(event.end), 'h:mm a')}
                               </div>
                               {event.description && (
-                                <div className="mt-2 text-sm text-gray-600">
-                                  {renderDescriptionWithLinks(event.description)}
-                                </div>
+                                <div className="mt-2 text-sm text-gray-600">{event.description}</div>
                               )}
                             </div>
                           ))
@@ -441,13 +370,10 @@ export default function Landingpage() {
                             <div key={event.id} className="p-4 hover:bg-gray-50">
                               <div className="font-semibold text-[#25314c] truncate">{event.title}</div>
                               <div className="text-sm text-gray-600">
-                                {formatDateInUserTimezone(event.start, 'h:mm a')} - {formatDateInUserTimezone(event.end, 'h:mm a')}
-                                <span className="text-xs ml-2 text-gray-500">({userTimezone})</span>
+                                {format(new Date(event.start), 'h:mm a')} - {format(new Date(event.end), 'h:mm a')}
                               </div>
                               {event.description && (
-                                <div className="mt-2 text-sm text-gray-600">
-                                  {renderDescriptionWithLinks(event.description)}
-                                </div>
+                                <div className="mt-2 text-sm text-gray-600">{event.description}</div>
                               )}
                             </div>
                           ))}
@@ -460,14 +386,6 @@ export default function Landingpage() {
           </div>
         </div>
       </div>
-
-      {/* Event Details Modal - Will work for both mobile and desktop */}
-      <EventDetailsModal
-        isOpen={showEventModal}
-        onClose={() => setShowEventModal(false)}
-        events={selectedEvents}
-        date={selectedDate}
-      />
     </>
   );
 }
