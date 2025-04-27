@@ -92,6 +92,11 @@ export default function Dashboard() {
       newErrors.time = 'Both start and end time are required'
     }
 
+    // Additional validation for dates
+    if (!dateRange[0].startDate || !dateRange[0].endDate) {
+      newErrors.date = 'Both start and end dates are required'
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -122,42 +127,50 @@ export default function Dashboard() {
     if (validateForm()) {
       setIsLoading(true)
       try {
-        // Ensure times are in 24-hour format
-        const startTime24 = timeRange.startTime;
-        const endTime24 = timeRange.endTime;
+        // Get the dates in YYYY-MM-DD format
+        const startDate = format(dateRange[0].startDate, 'yyyy-MM-dd');
+        const endDate = format(dateRange[0].endDate, 'yyyy-MM-dd');
         
-        // Validate end time is after start time
-        const startDateTime = new Date(`2000-01-01T${startTime24}`);
-        const endDateTime = new Date(`2000-01-01T${endTime24}`);
+        // Get times in HH:mm format
+        const startTime = timeRange.startTime;
+        const endTime = timeRange.endTime;
+
+        // Create date objects for comparison
+        const start = new Date(`${startDate}T${startTime}`);
+        const end = new Date(`${endDate}T${endTime}`);
         
-        if (endDateTime <= startDateTime) {
-          toast.error('End time must be after start time');
+        if (end <= start) {
+          toast.error('End date/time must be after start date/time');
+          setIsLoading(false);
           return;
         }
 
-        const formData = {
-          name,
-          startDate: format(dateRange[0].startDate, 'yyyy-MM-dd'),
-          endDate: format(dateRange[0].endDate, 'yyyy-MM-dd'),
-          startTime: startTime24,
-          endTime: endTime24,
-          description,
-          timezone: 'America/Cayman' // Add timezone
-        }
+        const eventData = {
+          name: name.trim(),
+          startDate,
+          endDate,
+          startTime,
+          endTime,
+          description: description.trim()
+        };
+
+        console.log('Sending event data:', eventData);
         
-        const response = await EventApis.createEvent(formData)
+        const response = await EventApis.createEvent(eventData);
+        console.log('API Response:', response);
+        
         if (response.success) {
-          await fetchEvents() // Refresh the events list
-          resetForm()
-          toast.success('Event created successfully')
+          await fetchEvents(); // Refresh the events list
+          resetForm();
+          toast.success('Event created successfully');
         } else {
-          toast.error(response.message || 'Failed to create event')
+          throw new Error(response.message || 'Failed to create event');
         }
       } catch (error) {
-        console.error('Error creating event:', error)
-        toast.error(error.message || 'Failed to create event')
+        console.error('Error creating event:', error);
+        toast.error(error.message || 'Failed to create event');
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
   }

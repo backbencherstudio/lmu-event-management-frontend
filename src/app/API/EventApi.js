@@ -16,25 +16,26 @@ const EventApis = {
    */
   createEvent: async (data) => {
     try {
-      // Validate required fields
+      // Basic validation
       if (!data.name || !data.startDate || !data.endDate || !data.startTime || !data.endTime || !data.description) {
         throw new Error('All fields are required');
       }
 
-      // Format the data to match API expectations
-      const eventData = {
-        name: data.name,
-        startDate: data.startDate,
-        endDate: data.endDate,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        description: data.description,
-        timezone: data.timezone || 'America/Cayman'
-      };
+      // Simple format validation
+      if (!data.startDate.match(/^\d{4}-\d{2}-\d{2}$/) || !data.endDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        throw new Error('Invalid date format');
+      }
 
-      const response = await axiosClient.post('/event', eventData);
+      if (!data.startTime.match(/^\d{2}:\d{2}$/) || !data.endTime.match(/^\d{2}:\d{2}$/)) {
+        throw new Error('Invalid time format');
+      }
+
+      const response = await axiosClient.post('/event', data);
       
-      toast.success('Event created successfully');
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to create event');
+      }
+
       return {
         success: true,
         message: 'Event created successfully',
@@ -42,10 +43,9 @@ const EventApis = {
       };
     } catch (error) {
       console.error('Create event error:', error);
-      toast.error(error.message);
       return {
         success: false,
-        message: error.message
+        message: error.message || 'Failed to create event'
       };
     }
   },
