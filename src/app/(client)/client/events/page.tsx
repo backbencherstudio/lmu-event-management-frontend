@@ -1,10 +1,22 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 
-const EventsPage = () => {
-  const [events, setEvents] = useState([]);
-  const [userTimezone, setUserTimezone] = useState('');
+interface Event {
+  id: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+}
+
+export default function EventsPage() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [userTimezone, setUserTimezone] = useState<string>('');
   
   useEffect(() => {
     // Get user's timezone
@@ -12,7 +24,7 @@ const EventsPage = () => {
     fetchEvents();
   }, []);
   
-  const formatEventTime = (date, time, sourceTimezone = 'America/Cayman') => {
+  const formatEventTime = (date: string, time: string, sourceTimezone: string = 'America/Cayman'): string => {
     try {
       const [year, month, day] = date.split('-');
       const [hours, minutes] = time.split(':');
@@ -27,7 +39,7 @@ const EventsPage = () => {
       ));
       
       // Convert to user's timezone
-      const userDate = utcToZonedTime(eventDate, userTimezone);
+      const userDate = toZonedTime(eventDate, userTimezone);
       
       return format(userDate, 'h:mm a');
     } catch (error) {
@@ -35,8 +47,12 @@ const EventsPage = () => {
       return time;
     }
   };
+
+  const fetchEvents = async () => {
+    // Add your event fetching logic here
+  };
   
-  const renderEvent = (event) => {
+  const renderEvent = (event: Event) => {
     const startTime = formatEventTime(event.startDate, event.startTime);
     const endTime = formatEventTime(event.endDate, event.endTime);
     
@@ -54,6 +70,13 @@ const EventsPage = () => {
       </div>
     );
   };
-  
-  // ... existing code ...
-}; 
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">Events</h1>
+      <div className="grid gap-4">
+        {events.map(renderEvent)}
+      </div>
+    </div>
+  );
+} 
