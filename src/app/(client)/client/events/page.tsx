@@ -45,7 +45,15 @@ export default function EventsPage() {
       const data = await response.json();
       
       if (data.success && Array.isArray(data.data)) {
-        setEvents(data.data.map(event => ({
+        setEvents(data.data.map((event: {
+          id: string;
+          name: string;
+          description: string;
+          startDate: string;
+          endDate: string;
+          startTime: string;
+          endTime: string;
+        }) => ({
           ...event,
           // Store original values
           originalStartDate: event.startDate,
