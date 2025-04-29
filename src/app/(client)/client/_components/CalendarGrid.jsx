@@ -71,7 +71,8 @@ const CalendarGrid = ({ events, currentDate }) => {
   const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
   const daysInMonth = lastDay.getDate();
-  const startDayOfWeek = firstDay.getDay();
+  // Convert Sunday (0) to 6, and other days to 0-5 for Monday-Saturday
+  const startDayOfWeek = (firstDay.getDay() + 6) % 7;
 
   // Create array for all days in month
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
@@ -110,7 +111,7 @@ const CalendarGrid = ({ events, currentDate }) => {
     <>
       <div className="grid grid-cols-7 gap-0 w-full min-w-0 overflow-hidden">
         {/* Weekday headers */}
-        {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => (
+        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
           <div key={day} className="w-full min-w-0 py-2 text-[#4A4C56] text-xs lg:text-sm font-medium border-b border-white flex items-center truncate">
             {day}
           </div>

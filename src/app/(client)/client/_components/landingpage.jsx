@@ -37,30 +37,6 @@ export default function Landingpage() {
     console.log('User timezone:', timezone);
   }, []);
 
-  // Format time with timezone consideration
-  const formatEventTime = (dateTime) => {
-    try {
-      const date = new Date(dateTime);
-      if (isNaN(date.getTime())) {
-        console.error('Invalid date:', dateTime);
-        return 'Invalid time';
-      }
-      
-      // Format in user's local timezone
-      const timeStr = date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: userTimezone
-      });
-      
-      return timeStr;
-    } catch (error) {
-      console.error('Error formatting time:', error);
-      return 'Error';
-    }
-  };
-
   // Fetch events from API
   const fetchEvents = async () => {
     setIsLoading(true);
@@ -74,32 +50,33 @@ export default function Landingpage() {
       if (response.success && Array.isArray(response.data)) {
         const formattedEvents = response.data.map(event => {
           try {
-            // Parse the date and time with explicit timezone
+            if (!event.startDate || !event.endDate) {
+              console.error('Missing date for event:', event);
+              return null;
+            }
+
+            // Parse dates safely without timezone offset
             const startDate = event.startDate.split('T')[0];
             const endDate = event.endDate.split('T')[0];
             const startTime = event.startTime || '00:00';
             const endTime = event.endTime || '23:59';
 
-            // Create dates with explicit timezone (Cayman Islands)
-            const startDateTime = new Date(`${startDate}T${startTime}:00-05:00`); // Cayman Islands is UTC-5
-            const endDateTime = new Date(`${endDate}T${endTime}:00-05:00`);
+            // Create dates without timezone offset
+            const startDateTime = new Date(`${startDate}T${startTime}:00`);
+            const endDateTime = new Date(`${endDate}T${endTime}:00`);
 
-            if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
-              console.error('Invalid date for event:', {
-                event,
-                startDateTime,
-                endDateTime
-              });
-              return null;
-            }
-
+            // Store original values
             return {
               id: event.id,
               title: event.name || 'Untitled Event',
               start: startDateTime,
               end: endDateTime,
               description: event.description || '',
-              originalTimezone: 'America/Cayman'
+              // Store original values for consistent display
+              originalStartDate: startDate,
+              originalEndDate: endDate,
+              originalStartTime: startTime,
+              originalEndTime: endTime
             };
           } catch (error) {
             console.error('Error processing event:', event, error);
@@ -125,6 +102,42 @@ export default function Landingpage() {
   useEffect(() => {
     fetchEvents();
   }, [currentPage, userTimezone]); // Re-fetch when timezone changes
+
+  // Format time with timezone consideration
+  const formatEventTime = (event) => {
+    try {
+      // Use the original time strings for display
+      const time24h = event.originalStartTime || event.startTime;
+      const [hours, minutes] = time24h.split(':');
+      const hour = parseInt(hours, 10);
+      
+      // Convert to 12-hour format
+      if (hour === 0) {
+        return `12:${minutes} AM`;
+      } else if (hour < 12) {
+        return `${hour}:${minutes} AM`;
+      } else if (hour === 12) {
+        return `12:${minutes} PM`;
+      } else {
+        return `${hour - 12}:${minutes} PM`;
+      }
+    } catch (error) {
+      console.error('Error formatting time:', error);
+      return 'Invalid time';
+    }
+  };
+
+  // Helper function to format date
+  const formatEventDate = (date) => {
+    try {
+      // Use the original date string to create a date at noon to avoid timezone issues
+      const dateStr = typeof date === 'string' ? date : date.originalStartDate;
+      return format(new Date(`${dateStr}T12:00:00`), 'MMM dd, yyyy');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
+  };
 
   // Helper function to render description with clickable links
   const renderDescriptionWithLinks = (description) => {
@@ -356,8 +369,7 @@ export default function Landingpage() {
                                               {event.title}
                                             </div>
                                             <div className="text-[#4A4C56] text-sm">
-                                              {formatEventTime(event.start)} - {formatEventTime(event.end)}
-                                              <span className="text-xs ml-2 text-gray-500">({userTimezone})</span>
+                                              {formatEventTime(event)} - {formatEventTime({ startTime: event.originalEndTime })}
                                             </div>
                                             {event.description && (
                                               <div className="text-[#4A4C56] text-sm truncate">
@@ -401,8 +413,7 @@ export default function Landingpage() {
                             <div key={event.id} className="p-4 border rounded-lg hover:bg-gray-50">
                               <div className="font-semibold text-lg text-[#25314c] truncate">{event.title}</div>
                               <div className="text-sm text-gray-600">
-                                {formatEventTime(event.start)} - {formatEventTime(event.end)}
-                                <span className="text-xs ml-2 text-gray-500">({userTimezone})</span>
+                                {formatEventTime(event)} - {formatEventTime({ startTime: event.originalEndTime })}
                               </div>
                               {event.description && (
                                 <div className="mt-2 text-sm text-gray-600">
@@ -436,8 +447,7 @@ export default function Landingpage() {
                             <div key={event.id} className="p-4 hover:bg-gray-50">
                               <div className="font-semibold text-[#25314c] truncate">{event.title}</div>
                               <div className="text-sm text-gray-600">
-                                {formatEventTime(event.start)} - {formatEventTime(event.end)}
-                                <span className="text-xs ml-2 text-gray-500">({userTimezone})</span>
+                                {formatEventTime(event)} - {formatEventTime({ startTime: event.originalEndTime })}
                               </div>
                               {event.description && (
                                 <div className="mt-2 text-sm text-gray-600">

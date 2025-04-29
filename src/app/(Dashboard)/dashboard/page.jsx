@@ -178,7 +178,17 @@ export default function Dashboard() {
   const fetchEvents = async () => {
     const response = await EventApis.getAllEvents()
     if (response.success) {
-      setEvents(response.data)
+      // Process dates properly before setting in state
+      const processedEvents = response.data.map(event => ({
+        ...event,
+        // Store original date strings
+        startDate: event.startDate.split('T')[0],
+        endDate: event.endDate.split('T')[0],
+        // Ensure time is in 24h format
+        startTime: event.startTime,
+        endTime: event.endTime
+      }));
+      setEvents(processedEvents);
     }
   }
 
@@ -464,10 +474,18 @@ export default function Dashboard() {
                     {event.description.split(' ').slice(0, 5).join(' ')}
                     {event.description.split(' ').length > 5 ? '...' : ''}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{format(new Date(event.startDate), 'MMM dd, yyyy')}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{format(new Date(event.endDate), 'MMM dd, yyyy')}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{convert24to12(event.startTime)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{convert24to12(event.endTime)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {format(new Date(event.startDate + 'T00:00:00'), 'MMM dd, yyyy')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {format(new Date(event.endDate + 'T00:00:00'), 'MMM dd, yyyy')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {convert24to12(event.startTime)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {convert24to12(event.endTime)}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center gap-2">
                       <button

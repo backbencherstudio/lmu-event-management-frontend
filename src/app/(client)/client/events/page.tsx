@@ -12,6 +12,10 @@ interface Event {
   endDate: string;
   startTime: string;
   endTime: string;
+  originalStartDate: string;
+  originalEndDate: string;
+  originalStartTime: string;
+  originalEndTime: string;
 }
 
 export default function EventsPage() {
@@ -24,24 +28,11 @@ export default function EventsPage() {
     fetchEvents();
   }, []);
   
-  const formatEventTime = (date: string, time: string, sourceTimezone: string = 'America/Cayman'): string => {
+  const formatEventTime = (date: string, time: string): string => {
     try {
-      const [year, month, day] = date.split('-');
+      // Create date without timezone offset
       const [hours, minutes] = time.split(':');
-      
-      // Create date in Cayman timezone
-      const eventDate = new Date(Date.UTC(
-        parseInt(year, 10),
-        parseInt(month, 10) - 1,
-        parseInt(day, 10),
-        parseInt(hours, 10),
-        parseInt(minutes, 10)
-      ));
-      
-      // Convert to user's timezone
-      const userDate = toZonedTime(eventDate, userTimezone);
-      
-      return format(userDate, 'h:mm a');
+      return `${parseInt(hours) % 12 || 12}:${minutes} ${parseInt(hours) >= 12 ? 'PM' : 'AM'}`;
     } catch (error) {
       console.error('Error formatting event time:', error);
       return time;
@@ -49,7 +40,23 @@ export default function EventsPage() {
   };
 
   const fetchEvents = async () => {
-    // Add your event fetching logic here
+    try {
+      const response = await fetch('/api/events');
+      const data = await response.json();
+      
+      if (data.success && Array.isArray(data.data)) {
+        setEvents(data.data.map(event => ({
+          ...event,
+          // Store original values
+          originalStartDate: event.startDate,
+          originalEndDate: event.endDate,
+          originalStartTime: event.startTime,
+          originalEndTime: event.endTime
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
   };
   
   const renderEvent = (event: Event) => {
@@ -57,14 +64,14 @@ export default function EventsPage() {
     const endTime = formatEventTime(event.endDate, event.endTime);
     
     return (
-      <div key={event.id} className="event-card">
-        <h3>{event.name}</h3>
-        <p>{event.description}</p>
-        <div className="event-time">
+      <div key={event.id} className="bg-white rounded-lg shadow-md p-6 mb-4">
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">{event.name}</h3>
+        <p className="text-gray-600 mb-4">{event.description}</p>
+        <div className="text-sm text-gray-500">
           <p>
-            {format(new Date(event.startDate), 'MMMM d, yyyy')}
+            {format(new Date(event.startDate + 'T12:00:00'), 'MMMM d, yyyy')}
             <br />
-            {startTime} - {endTime} ({userTimezone})
+            {startTime} - {endTime}
           </p>
         </div>
       </div>
