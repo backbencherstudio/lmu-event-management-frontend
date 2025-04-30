@@ -43,6 +43,20 @@ const convert24to12 = (time24h) => {
   }
 };
 
+// Utility function to adjust time 11 hours earlier
+const adjustTimeForDashboard = (time24h) => {
+  if (!time24h) return time24h;
+  try {
+    const [hours, minutes] = time24h.split(':');
+    let adjustedHours = parseInt(hours, 10) - 11;
+    if (adjustedHours < 0) adjustedHours += 24;
+    return `${adjustedHours.toString().padStart(2, '0')}:${minutes}`;
+  } catch (error) {
+    console.error('Error adjusting time:', error);
+    return time24h;
+  }
+};
+
 export default function Dashboard() {
   const defaultFormState = {
     name: '',
@@ -461,18 +475,25 @@ export default function Dashboard() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time (GMT-5)</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time (GMT-5)</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {events.map((event) => (
                 <tr key={event.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{event.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {event.name.split(' ').slice(0, 6).join(' ')}
+                    {event.name.split(' ').length > 6 ? '...' : ''}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {event.description.split(' ').slice(0, 5).join(' ')}
-                    {event.description.split(' ').length > 5 ? '...' : ''}
+                    {event.description.includes('http') 
+                      ? event.description.length > 45 
+                        ? event.description.substring(0, 45) + '...'
+                        : event.description
+                      : event.description.split(' ').slice(0, 7).join(' ') + 
+                        (event.description.split(' ').length > 7 ? '...' : '')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {format(new Date(event.startDate + 'T00:00:00'), 'MMM dd, yyyy')}
@@ -481,10 +502,10 @@ export default function Dashboard() {
                     {format(new Date(event.endDate + 'T00:00:00'), 'MMM dd, yyyy')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {convert24to12(event.startTime)}
+                    {convert24to12(adjustTimeForDashboard(event.startTime))}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {convert24to12(event.endTime)}
+                    {convert24to12(adjustTimeForDashboard(event.endTime))}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center gap-2">
