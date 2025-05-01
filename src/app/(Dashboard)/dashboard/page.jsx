@@ -190,7 +190,9 @@ export default function Dashboard() {
   }
 
   const fetchEvents = async () => {
-    const response = await EventApis.getAllEvents()
+    const response = await EventApis.getAllEvents({
+      limit: 1000 // Set a high limit to get all events
+    })
     if (response.success) {
       // Process dates properly before setting in state
       const processedEvents = response.data.map(event => ({
@@ -458,7 +460,10 @@ export default function Dashboard() {
       {/* Events Table */}
       <div className="mt-10">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">All Events</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-semibold">All Events</h2>
+            <span className="text-sm text-gray-600">({events.length})</span>
+          </div>
           <button
             onClick={handleDownload}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
