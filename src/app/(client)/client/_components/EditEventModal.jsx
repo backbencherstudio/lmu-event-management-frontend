@@ -43,22 +43,13 @@ const doesEventCrossMidnight = (startTime, endTime) => {
 const EditEventModal = ({ isOpen, onClose, onConfirm, event }) => {
   if (!isOpen || !event) return null;
 
-  // Add 1 hour to the initial times
-  const addOneHour = (time12h) => {
-    if (!time12h) return time12h;
-    const time24 = convertTo24Hour(time12h);
-    const [hours, minutes] = time24.split(':').map(Number);
-    const newHours = (hours + 1) % 24;
-    return convertTo12Hour(`${newHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
-  };
-
   const [formData, setFormData] = useState({
     name: event.name,
     description: event.description,
     startDate: format(new Date(event.startDate), 'yyyy-MM-dd'),
     endDate: format(new Date(event.endDate), 'yyyy-MM-dd'),
-    startTime: addOneHour(event.startTime),
-    endTime: addOneHour(event.endTime)
+    startTime: event.startTime,
+    endTime: event.endTime
   });
 
   // Effect to handle date adjustment when time crosses midnight
@@ -103,7 +94,6 @@ const EditEventModal = ({ isOpen, onClose, onConfirm, event }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Subtract one hour from times before submitting
     const adjustedData = {
       ...formData,
       startTime: convertTo12Hour(convertTo24Hour(formData.startTime)),

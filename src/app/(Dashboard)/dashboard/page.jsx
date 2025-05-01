@@ -43,13 +43,17 @@ const convert24to12 = (time24h) => {
   }
 };
 
-// Utility function to adjust time 11 hours earlier
+// Utility function to keep original time (no adjustment)
 const adjustTimeForDashboard = (time24h) => {
   if (!time24h) return time24h;
   try {
     const [hours, minutes] = time24h.split(':');
-    let adjustedHours = parseInt(hours, 10) - 11;
+    if (!hours || !minutes) return time24h;
+    
+    let adjustedHours = parseInt(hours, 10) - 0;
     if (adjustedHours < 0) adjustedHours += 24;
+    if (isNaN(adjustedHours)) return time24h;
+    
     return `${adjustedHours.toString().padStart(2, '0')}:${minutes}`;
   } catch (error) {
     console.error('Error adjusting time:', error);
@@ -480,8 +484,8 @@ export default function Dashboard() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time (GMT-5)</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time (GMT-5)</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
