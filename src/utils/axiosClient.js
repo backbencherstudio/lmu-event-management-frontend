@@ -1,7 +1,7 @@
 import { CookieHelper } from "../helper/cookie.helper";
 import axios from "axios";
 
-const API_URL = 'https://lmu-event-management-backend-production.up.railway.app';
+const API_URL = 'https://backend.caymanbizevents.com';
 
 // Get base URL without /api for image URLs
 const getBaseUrl = () => {
