@@ -57,12 +57,14 @@ const EventApis = {
    * @param {number} params.limit - Items per page (default: 10)
    * @returns {Promise<Object>} Paginated events data
    */
+
+  
   getAllEvents: async (params = {}) => {
     try {
       // Set default pagination values
       const queryParams = new URLSearchParams({
         page: String(params.page || 1),
-        limit: String(params.limit || 10)
+        limit: String(params.limit || 100000)
       });
 
       console.log('Making request with params:', queryParams.toString());
@@ -91,6 +93,9 @@ const EventApis = {
       };
     }
   },
+
+
+
 
   /**
    * Update an event

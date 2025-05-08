@@ -44,7 +44,7 @@ export default function Landingpage() {
       console.log('Fetching events...');
       const response = await EventApis.getAllEvents({
         page: currentPage,
-        limit: 50
+        limit: 500000
       });
 
       if (response.success && Array.isArray(response.data)) {
