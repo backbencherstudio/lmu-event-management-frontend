@@ -2,6 +2,9 @@
 import React from "react";
 import Menu from "./_components/menu";
 
+
+
+
 export default function Layout({ children }) {
   return (
     <div className="relative overflow-x-hidden">
