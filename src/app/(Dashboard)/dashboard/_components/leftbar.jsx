@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import logo from "../../../../../public/client/logo.svg";
 import events from "../../../../../public/client/events.svg";
 import subscriber from "../../../../../public/client/subscriber.svg";
-import { IoSearch, IoChevronForward, IoLogOutOutline } from "react-icons/io5";
+import { IoSearch, IoChevronForward, IoLogOutOutline, IoMailOutline } from "react-icons/io5";
 import AuthApis from "../../../API/AuthApi";
 
 export default function Leftbar() {
@@ -101,6 +101,27 @@ export default function Leftbar() {
                       />
                       <div className="justify-start text-[#252b37] text-base font-semibold leading-normal">
                         Subscribers
+                      </div>
+                    </div>
+                    <IoChevronForward className="w-4 h-4 text-[#a3a7ae] text-end" />
+                  </div>
+                </div>
+              </Link>
+            </div>
+            <div data-current="True" data-open="False" className="h-11 ">
+              <Link href="/dashboard/event-request">
+                <div
+                  data-badge="false"
+                  data-current="True"
+                  data-dot="false"
+                  data-state="Default"
+                  className="py-0.5 flex justify-start items-center overflow-hidden"
+                >
+                  <div className={`px-3 py-2 ${pathname === '/dashboard/event-request' ? 'bg-neutral-200' : 'bg-neutral-50'} rounded-md flex justify-between items-center w-full`}>
+                    <div className="flex justify-start items-center gap-2">
+                      <IoMailOutline className="w-5 h-5 text-[#717680]" />
+                      <div className="justify-start text-[#252b37] text-base font-semibold leading-normal">
+                        Event Request
                       </div>
                     </div>
                     <IoChevronForward className="w-4 h-4 text-[#a3a7ae] text-end" />
