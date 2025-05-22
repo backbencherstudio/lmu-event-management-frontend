@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
-
 interface Event {
   id: string;
   name: string;
