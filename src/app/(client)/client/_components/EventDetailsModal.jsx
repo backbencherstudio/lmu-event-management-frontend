@@ -1,9 +1,27 @@
 'use client'
 import React from 'react';
-import format from 'date-fns/format';
+import { format, isValid, parseISO } from 'date-fns';
 
 const EventDetailsModal = ({ isOpen, onClose, events, date }) => {
   if (!isOpen) return null;
+
+  // Safely parse the date
+  const parseDate = (dateStr) => {
+    if (!dateStr) return null;
+    try {
+      const parsedDate = typeof dateStr === 'string' ? parseISO(dateStr) : new Date(dateStr);
+      return isValid(parsedDate) ? parsedDate : null;
+    } catch (error) {
+      console.error('Error parsing date:', error);
+      return null;
+    }
+  };
+
+  // Safely format the date
+  const formatDate = (dateStr, formatStr) => {
+    const parsedDate = parseDate(dateStr);
+    return parsedDate ? format(parsedDate, formatStr) : 'Invalid Date';
+  };
 
   return (
     <div className="box flex justify-center items-center">
@@ -19,7 +37,7 @@ const EventDetailsModal = ({ isOpen, onClose, events, date }) => {
           <div className="p-4 border-b border-gray-200">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold text-[#344053]">
-                Events for {format(date, 'MMMM d, yyyy')}
+                Events for {formatDate(date, 'MMMM d, yyyy')}
               </h2>
               <button 
                 onClick={onClose}
@@ -32,7 +50,7 @@ const EventDetailsModal = ({ isOpen, onClose, events, date }) => {
 
           {/* Modal Body */}
           <div className="p-4 overflow-y-auto max-h-[60vh]">
-            {events.length > 0 ? (
+            {events && events.length > 0 ? (
               <div className="space-y-4">
                 {events.map((event, index) => (
                   <div key={event.id || index} className="p-3 rounded-lg bg-[#f8f9fb] last:mb-0">
@@ -40,12 +58,18 @@ const EventDetailsModal = ({ isOpen, onClose, events, date }) => {
                       {event.title}
                     </h3>
                     <div className="text-[#4A4C56] text-sm mb-2">
-                      {format(new Date(event.start), 'h:mm a')} - {format(new Date(event.end), 'h:mm a')}
+                      {formatDate(event.start, 'h:mm a')} - {formatDate(event.end, 'h:mm a')}
                     </div>
                     {event.description && (
-                      <p className="text-[#344053] text-sm whitespace-pre-wrap">
-                        {event.description}
-                      </p>
+                      <p 
+                        className="text-[#344053] text-sm whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{
+                          __html: event.description.replace(
+                            /(https?:\/\/[^\s]+)/g,
+                            '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-[#006198] hover:underline">$1</a>'
+                          )
+                        }}
+                      />
                     )}
                   </div>
                 ))}

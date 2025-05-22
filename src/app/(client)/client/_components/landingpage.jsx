@@ -1,6 +1,8 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react';
 import format from 'date-fns/format';
+import { parseISO } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import bgimg from '../../../../../public/client/background.png';
 import { IoChevronDown } from 'react-icons/io5';
 import DatePickerModal from './DatePickerModal';
@@ -9,6 +11,9 @@ import leftarrow from '../../../../../public/client/left.svg';
 import rightarrow from '../../../../../public/client/right.svg';
 import EventApis from '../../../API/EventApi';
 import { toast } from 'react-hot-toast';
+import EventDetailsModal from './EventDetailsModal';
+// Base timezone for Cayman Islands where events are created
+const BASE_TIMEZONE = 'America/Cayman';
 
 export default function Landingpage() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -19,6 +24,17 @@ export default function Landingpage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const buttonRef = useRef(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedEvents, setSelectedEvents] = useState([]);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [userTimezone, setUserTimezone] = useState('');
+
+  // Get user's timezone on component mount
+  useEffect(() => {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    setUserTimezone(timezone);
+    console.log('User timezone:', timezone);
+  }, []);
 
   // Fetch events from API
   const fetchEvents = async () => {
@@ -27,58 +43,46 @@ export default function Landingpage() {
       console.log('Fetching events...');
       const response = await EventApis.getAllEvents({
         page: currentPage,
-        limit: 50 // Fetch more events at once for calendar view
+        limit: 500000
       });
 
-      console.log('Events API Response:', response);
-
       if (response.success && Array.isArray(response.data)) {
-        // Transform API data to match calendar format
         const formattedEvents = response.data.map(event => {
           try {
-            // Parse the date and time separately
-            const startDate = event.startDate.split('T')[0];
-            const endDate = event.endDate.split('T')[0];
-            
-            // Use the specific time from startTime and endTime fields
-            const startTime = event.startTime || '00:00';
-            const endTime = event.endTime || '23:59';
-
-            // Combine date and time
-            const startDateTime = new Date(`${startDate}T${startTime}:00`);
-            const endDateTime = new Date(`${endDate}T${endTime}:00`);
-
-            // Validate the dates
-            if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
-              console.error('Invalid date for event:', {
-                event,
-                startDateTime,
-                endDateTime
-              });
+            if (!event.startDate || !event.endDate) {
+              console.error('Missing date for event:', event);
               return null;
             }
 
-            console.log('Successfully processed event:', {
-              id: event.id,
-              name: event.name,
-              start: startDateTime.toISOString(),
-              end: endDateTime.toISOString()
-            });
+            // Parse dates safely without timezone offset
+            const startDate = event.startDate.split('T')[0];
+            const endDate = event.endDate.split('T')[0];
+            const startTime = event.startTime || '00:00';
+            const endTime = event.endTime || '23:59';
 
+            // Create dates without timezone offset
+            const startDateTime = new Date(`${startDate}T${startTime}:00`);
+            const endDateTime = new Date(`${endDate}T${endTime}:00`);
+
+            // Store original values
             return {
               id: event.id,
               title: event.name || 'Untitled Event',
               start: startDateTime,
               end: endDateTime,
-              description: event.description || ''
+              description: event.description || '',
+              // Store original values for consistent display
+              originalStartDate: startDate,
+              originalEndDate: endDate,
+              originalStartTime: startTime,
+              originalEndTime: endTime
             };
           } catch (error) {
             console.error('Error processing event:', event, error);
             return null;
           }
-        }).filter(event => event !== null); // Remove any events that failed to process
+        }).filter(event => event !== null);
 
-        console.log('Final formatted events:', formattedEvents);
         setEvents(formattedEvents);
         setTotalPages(response.totalPages || 1);
       } else {
@@ -87,7 +91,7 @@ export default function Landingpage() {
       }
     } catch (error) {
       console.error('Error fetching events:', error);
-      toast.error('Failed to load events. Please try again.');
+      toast.error('Failed to load events. Please try again...');
     } finally {
       setIsLoading(false);
     }
@@ -96,14 +100,73 @@ export default function Landingpage() {
   // Fetch events when component mounts or when page changes
   useEffect(() => {
     fetchEvents();
-  }, [currentPage]);
+  }, [currentPage, userTimezone]); // Re-fetch when timezone changes
 
-  const handleNavigate = (date) => {
-    setCurrentDate(date);
+  // Format time with timezone consideration
+  const formatEventTime = (event) => {
+    try {
+      // Use the original time strings for display
+      const time24h = event.originalStartTime || event.startTime;
+      const [hours, minutes] = time24h.split(':');
+      const hour = parseInt(hours, 10);
+      
+      // Convert to 12-hour format
+      if (hour === 0) {
+        return `12:${minutes} AM`;
+      } else if (hour < 12) {
+        return `${hour}:${minutes} AM`;
+      } else if (hour === 12) {
+        return `12:${minutes} PM`;
+      } else {
+        return `${hour - 12}:${minutes} PM`;
+      }
+    } catch (error) {
+      console.error('Error formatting time:', error);
+      return 'Invalid time';
+    }
   };
 
-  const handleViewChange = (newView) => {
-    setView(newView);
+  // Helper function to format date
+  const formatEventDate = (date) => {
+    try {
+      // Use the original date string to create a date at noon to avoid timezone issues
+      const dateStr = typeof date === 'string' ? date : date.originalStartDate;
+      return format(new Date(`${dateStr}T12:00:00`), 'MMM dd, yyyy');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
+  };
+
+  // Helper function to render description with clickable links
+  const renderDescriptionWithLinks = (description) => {
+    return description.split(/(https?:\/\/[^\s]+)/g).map((part, i) => {
+      if (part.match(/^https?:\/\/[^\s]+$/)) {
+        return (
+          <a
+            key={i}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#006198] hover:underline"
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
+  // Helper function to format date with timezone
+  const formatDateWithTimezone = (date, formatStr) => {
+    try {
+      const zonedDate = formatInTimeZone(date, userTimezone || BASE_TIMEZONE, 'yyyy-MM-dd HH:mm:ss');
+      return format(zonedDate, formatStr);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return format(date, formatStr);
+    }
   };
 
   // Helper function to check if a date has events
@@ -120,6 +183,13 @@ export default function Landingpage() {
         eventDate.getFullYear() === date.getFullYear()
       );
     });
+  };
+
+  // Add handler for day click
+  const handleDayClick = (date, dayEvents) => {
+    setSelectedDate(date);
+    setSelectedEvents(dayEvents);
+    setShowEventModal(true);
   };
 
   // Custom toolbar component
@@ -173,7 +243,7 @@ export default function Landingpage() {
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}
               onSelect={(date) => {
-                handleNavigate(date);
+                setCurrentDate(date);
               }}
               currentDate={currentDate}
             />
@@ -182,7 +252,7 @@ export default function Landingpage() {
         <div className="flex items-center gap-2 sm:gap-4">
           <div className="rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] outline outline-1 outline-offset-[-1px] outline-[#cfd4dc] flex justify-start items-start overflow-hidden">
             <button
-              onClick={() => handleViewChange('agenda')}
+              onClick={() => setView('agenda')}
               className={`min-h-10 md:min-h-12 px-3 sm:px-4 md:px-5 py-2 md:py-3 bg-white border-r border-[#cfd4dc] flex justify-center items-center gap-1 md:gap-2 ${
                 view === 'agenda' ? 'bg-[#f8f9fb] text-[#006198] font-semibold' : 'text-[#4a4c56]'
               }`}
@@ -190,7 +260,7 @@ export default function Landingpage() {
               <span className="text-xs sm:text-sm md:text-base font-['Outfit'] leading-tight">List</span>
             </button>
             <button
-              onClick={() => handleViewChange('month')}
+              onClick={() => setView('month')}
               className={`min-h-10 md:min-h-12 px-3 sm:px-4 md:px-5 py-2 md:py-3 border-r border-[#cfd4dc] flex justify-center items-center gap-1 md:gap-2 ${
                 view === 'month' ? 'bg-[#f8f9fb] text-[#006198] font-semibold' : 'bg-white text-[#4a4c56]'
               }`}
@@ -198,7 +268,7 @@ export default function Landingpage() {
               <span className="text-xs sm:text-sm md:text-base font-['Outfit'] leading-tight">Month</span>
             </button>
             <button
-              onClick={() => handleViewChange('day')}
+              onClick={() => setView('day')}
               className={`hidden md:flex min-h-10 md:min-h-12 px-3 sm:px-4 md:px-5 py-2 md:py-3 justify-center items-center gap-1 md:gap-2 ${
                 view === 'day' ? 'bg-[#f8f9fb] text-[#006198] font-semibold' : 'bg-white text-[#4a4c56]'
               }`}
@@ -219,7 +289,7 @@ export default function Landingpage() {
   // Loading state component
   const LoadingState = () => (
     <div className="flex justify-center items-center min-h-[400px]">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#006198]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#006199]"></div>
     </div>
   );
 
@@ -274,7 +344,11 @@ export default function Landingpage() {
                           const dayEvents = getEventsForDate(date);
                           
                           return (
-                            <div key={i} className="bg-[#f2f7fa] rounded-lg overflow-hidden">
+                            <div 
+                              key={i} 
+                              onClick={() => handleDayClick(date, dayEvents)}
+                              className="bg-[#f2f7fa] rounded-lg overflow-hidden cursor-pointer hover:bg-[#e5f0f7] transition-colors"
+                            >
                               <div className="grid grid-cols-12">
                                 <div className="col-span-4 p-5 flex flex-col justify-center">
                                   <div className="text-[#006198] text-3xl font-normal leading-none">{day}</div>
@@ -294,7 +368,7 @@ export default function Landingpage() {
                                               {event.title}
                                             </div>
                                             <div className="text-[#4A4C56] text-sm">
-                                              {format(new Date(event.start), 'h:mm a')} - {format(new Date(event.end), 'h:mm a')}
+                                              {formatEventTime(event)} - {formatEventTime({ startTime: event.originalEndTime })}
                                             </div>
                                             {event.description && (
                                               <div className="text-[#4A4C56] text-sm truncate">
@@ -338,10 +412,12 @@ export default function Landingpage() {
                             <div key={event.id} className="p-4 border rounded-lg hover:bg-gray-50">
                               <div className="font-semibold text-lg text-[#25314c] truncate">{event.title}</div>
                               <div className="text-sm text-gray-600">
-                                {format(new Date(event.start), 'MMMM d, yyyy h:mm a')} - {format(new Date(event.end), 'h:mm a')}
+                                {formatEventTime(event)} - {formatEventTime({ startTime: event.originalEndTime })}
                               </div>
                               {event.description && (
-                                <div className="mt-2 text-sm text-gray-600">{event.description}</div>
+                                <div className="mt-2 text-sm text-gray-600">
+                                  {renderDescriptionWithLinks(event.description)}
+                                </div>
                               )}
                             </div>
                           ))
@@ -370,10 +446,12 @@ export default function Landingpage() {
                             <div key={event.id} className="p-4 hover:bg-gray-50">
                               <div className="font-semibold text-[#25314c] truncate">{event.title}</div>
                               <div className="text-sm text-gray-600">
-                                {format(new Date(event.start), 'h:mm a')} - {format(new Date(event.end), 'h:mm a')}
+                                {formatEventTime(event)} - {formatEventTime({ startTime: event.originalEndTime })}
                               </div>
                               {event.description && (
-                                <div className="mt-2 text-sm text-gray-600">{event.description}</div>
+                                <div className="mt-2 text-sm text-gray-600">
+                                  {renderDescriptionWithLinks(event.description)}
+                                </div>
                               )}
                             </div>
                           ))}
@@ -386,6 +464,17 @@ export default function Landingpage() {
           </div>
         </div>
       </div>
+
+      {/* Event Details Modal - Will work for both mobile and desktop */}
+      <EventDetailsModal
+        isOpen={showEventModal}
+        onClose={() => setShowEventModal(false)}
+        events={selectedEvents}
+        date={selectedDate}
+      />
+
+
+
     </>
   );
 }

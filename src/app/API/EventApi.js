@@ -6,35 +6,36 @@ const EventApis = {
    * Create a new event
    * @param {Object} data - Event data
    * @param {string} data.name - Event name
-   * @param {Object} data.date - Event date range
-   * @param {string} data.date.startDate - Start date (YYYY-MM-DD)
-   * @param {string} data.date.endDate - End date (YYYY-MM-DD)
-   * @param {Object} data.time - Event time range
-   * @param {string} data.time.startTime - Start time (HH:mm)
-   * @param {string} data.time.endTime - End time (HH:mm)
+   * @param {string} data.startDate - Start date (YYYY-MM-DD)
+   * @param {string} data.endDate - End date (YYYY-MM-DD)
+   * @param {string} data.startTime - Start time (HH:mm)
+   * @param {string} data.endTime - End time (HH:mm)
    * @param {string} data.description - Event description
+   * @param {string} data.timezone - Event timezone
    * @returns {Promise<Object>} Created event data
    */
   createEvent: async (data) => {
     try {
-      // Validate required fields
-      if (!data.name || !data.date || !data.time || !data.description) {
+      // Basic validation
+      if (!data.name || !data.startDate || !data.endDate || !data.startTime || !data.endTime || !data.description) {
         throw new Error('All fields are required');
       }
 
-      // Format the data to match API expectations
-      const eventData = {
-        name: data.name,
-        startDate: data.date.startDate,
-        endDate: data.date.endDate,
-        startTime: data.time.startTime,
-        endTime: data.time.endTime,
-        description: data.description
-      };
+      // Simple format validation
+      if (!data.startDate.match(/^\d{4}-\d{2}-\d{2}$/) || !data.endDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        throw new Error('Invalid date format');
+      }
 
-      const response = await axiosClient.post('/event', eventData);
+      if (!data.startTime.match(/^\d{2}:\d{2}$/) || !data.endTime.match(/^\d{2}:\d{2}$/)) {
+        throw new Error('Invalid time format');
+      }
+
+      const response = await axiosClient.post('/event', data);
       
-      toast.success('Event created successfully');
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to create event');
+      }
+
       return {
         success: true,
         message: 'Event created successfully',
@@ -42,10 +43,9 @@ const EventApis = {
       };
     } catch (error) {
       console.error('Create event error:', error);
-      toast.error(error.message);
       return {
         success: false,
-        message: error.message
+        message: error.message || 'Failed to create event'
       };
     }
   },
@@ -57,12 +57,14 @@ const EventApis = {
    * @param {number} params.limit - Items per page (default: 10)
    * @returns {Promise<Object>} Paginated events data
    */
+
+  
   getAllEvents: async (params = {}) => {
     try {
       // Set default pagination values
       const queryParams = new URLSearchParams({
         page: String(params.page || 1),
-        limit: String(params.limit || 10)
+        limit: String(params.limit || 100000)
       });
 
       console.log('Making request with params:', queryParams.toString());
@@ -91,6 +93,9 @@ const EventApis = {
       };
     }
   },
+
+
+
 
   /**
    * Update an event

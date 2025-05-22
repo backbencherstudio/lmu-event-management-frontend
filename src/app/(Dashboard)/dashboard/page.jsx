@@ -6,7 +6,8 @@ import 'react-date-range/dist/styles.css'
 import 'react-date-range/dist/theme/default.css'
 import EventApis from '../../API/EventApi'
 import { toast } from 'react-hot-toast'
-import { MdDelete, MdEdit } from 'react-icons/md'
+import { MdDelete, MdEdit, MdDownload } from 'react-icons/md'
+import * as XLSX from 'xlsx'
 import DeleteConfirmationModal from '../../(client)/client/_components/DeleteConfirmationModal'
 import EditEventModal from '../../(client)/client/_components/EditEventModal'
 
@@ -39,6 +40,24 @@ const convert24to12 = (time24h) => {
     return `12:${minutes} PM`;
   } else {
     return `${hour - 12}:${minutes} PM`;
+  }
+};
+
+// Utility function to keep original time (no adjustment)
+const adjustTimeForDashboard = (time24h) => {
+  if (!time24h) return time24h;
+  try {
+    const [hours, minutes] = time24h.split(':');
+    if (!hours || !minutes) return time24h;
+    
+    let adjustedHours = parseInt(hours, 10) - 0;
+    if (adjustedHours < 0) adjustedHours += 24;
+    if (isNaN(adjustedHours)) return time24h;
+    
+    return `${adjustedHours.toString().padStart(2, '0')}:${minutes}`;
+  } catch (error) {
+    console.error('Error adjusting time:', error);
+    return time24h;
   }
 };
 
@@ -91,6 +110,11 @@ export default function Dashboard() {
       newErrors.time = 'Both start and end time are required'
     }
 
+    // Additional validation for dates
+    if (!dateRange[0].startDate || !dateRange[0].endDate) {
+      newErrors.date = 'Both start and end dates are required'
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -121,39 +145,70 @@ export default function Dashboard() {
     if (validateForm()) {
       setIsLoading(true)
       try {
-        const formData = {
-          name,
-          date: {
-            startDate: format(dateRange[0].startDate, 'yyyy-MM-dd'),
-            endDate: format(dateRange[0].endDate, 'yyyy-MM-dd')
-          },
-          time: {
-            startTime: timeRange.startTime,
-            endTime: timeRange.endTime
-          },
-          description
-        }
+        // Get the dates in YYYY-MM-DD format
+        const startDate = format(dateRange[0].startDate, 'yyyy-MM-dd');
+        const endDate = format(dateRange[0].endDate, 'yyyy-MM-dd');
         
-        const response = await EventApis.createEvent(formData)
+        // Get times in HH:mm format
+        const startTime = timeRange.startTime;
+        const endTime = timeRange.endTime;
+
+        // Create date objects for comparison
+        const start = new Date(`${startDate}T${startTime}`);
+        const end = new Date(`${endDate}T${endTime}`);
+        
+        if (end <= start) {
+          toast.error('End date/time must be after start date/time');
+          setIsLoading(false);
+          return;
+        }
+
+        const eventData = {
+          name: name.trim(),
+          startDate,
+          endDate,
+          startTime,
+          endTime,
+          description: description.trim()
+        };
+
+        console.log('Sending event data:', eventData);
+        
+        const response = await EventApis.createEvent(eventData);
+        console.log('API Response:', response);
+        
         if (response.success) {
-          resetForm()
-          toast.success('Event created successfully')
+          await fetchEvents(); // Refresh the events list
+          resetForm();
+          toast.success('Event created successfully');
         } else {
-          toast.error(response.message || 'Failed to create event')
+          throw new Error(response.message || 'Failed to create event');
         }
       } catch (error) {
-        console.error('Error creating event:', error)
-        toast.error(error.message || 'Failed to create event')
+        console.error('Error creating event:', error);
+        toast.error(error.message || 'Failed to create event');
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
   }
 
   const fetchEvents = async () => {
-    const response = await EventApis.getAllEvents()
+    const response = await EventApis.getAllEvents({
+      limit: 1000 // Set a high limit to get all events
+    })
     if (response.success) {
-      setEvents(response.data)
+      // Process dates properly before setting in state
+      const processedEvents = response.data.map(event => ({
+        ...event,
+        // Store original date strings
+        startDate: event.startDate.split('T')[0],
+        endDate: event.endDate.split('T')[0],
+        // Ensure time is in 24h format
+        startTime: event.startTime,
+        endTime: event.endTime
+      }));
+      setEvents(processedEvents);
     }
   }
 
@@ -203,6 +258,36 @@ export default function Dashboard() {
       toast.error('Failed to update event')
     }
   }
+
+  // Handle download function
+  const handleDownload = () => {
+    try {
+      // Prepare data for Excel
+      const excelData = events.map(event => ({
+        'Event Name': event.name,
+        'Description': event.description,
+        'Start Date': format(new Date(event.startDate), 'MMM dd, yyyy'),
+        'End Date': format(new Date(event.endDate), 'MMM dd, yyyy'),
+        'Start Time': convert24to12(event.startTime),
+        'End Time': convert24to12(event.endTime)
+      }));
+
+      // Create worksheet
+      const ws = XLSX.utils.json_to_sheet(excelData);
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Events");
+
+      // Generate Excel file
+      XLSX.writeFile(wb, `events_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      
+      toast.success('Excel file downloaded successfully!');
+    } catch (error) {
+      console.error('Error downloading Excel file:', error);
+      toast.error('Failed to download Excel file');
+    }
+  };
 
   return (
     <div className="p-8 pb-12 bg-white">
@@ -291,7 +376,8 @@ export default function Dashboard() {
                     showPreview={true}
                     moveRangeOnFirstSelection={false}
                     retainEndDateOnFirstSelection={true}
-                    minDate={new Date()}
+                    minDate={new Date('1900-01-01')}
+                    maxDate={new Date('2100-12-31')}
                   />
                 </div>
               </div>
@@ -377,7 +463,19 @@ export default function Dashboard() {
 
       {/* Events Table */}
       <div className="mt-10">
-        <h2 className="text-xl font-semibold mb-4">All Events</h2>
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-semibold">All Events</h2>
+            <span className="text-sm text-gray-600">({events.length})</span>
+          </div>
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <MdDownload className="w-5 h-5" />
+            <span>Download Excel</span>
+          </button>
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -386,23 +484,38 @@ export default function Dashboard() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {events.map((event) => (
                 <tr key={event.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{event.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {event.description.split(' ').slice(0, 5).join(' ')}
-                    {event.description.split(' ').length > 5 ? '...' : ''}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {event.name.split(' ').slice(0, 6).join(' ')}
+                    {event.name.split(' ').length > 6 ? '...' : ''}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{format(new Date(event.startDate), 'MMM dd, yyyy')}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{format(new Date(event.endDate), 'MMM dd, yyyy')}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{convert24to12(event.startTime)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{convert24to12(event.endTime)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {event.description.includes('http') 
+                      ? event.description.length > 45 
+                        ? event.description.substring(0, 45) + '...'
+                        : event.description
+                      : event.description.split(' ').slice(0, 7).join(' ') + 
+                        (event.description.split(' ').length > 7 ? '...' : '')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {format(new Date(event.startDate + 'T00:00:00'), 'MMM dd, yyyy')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {format(new Date(event.endDate + 'T00:00:00'), 'MMM dd, yyyy')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {convert24to12(adjustTimeForDashboard(event.startTime))}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {convert24to12(adjustTimeForDashboard(event.endTime))}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center gap-2">
                       <button

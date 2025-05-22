@@ -1,9 +1,10 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { FiTrash2, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiTrash2, FiChevronLeft, FiChevronRight, FiDownload } from 'react-icons/fi';
 import UserApis from '../../../API/UserApi';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
+import * as XLSX from 'xlsx';
 
 export default function SubscriberPage() {
   // State management
@@ -70,11 +71,49 @@ export default function SubscriberPage() {
     }
   };
 
+  // Handle download function
+  const handleDownload = () => {
+    try {
+      // Prepare data for Excel
+      const excelData = users.map(user => ({
+        'Name': `${user.firstName} ${user.lastName}`,
+        'Company': user.companyName,
+        'Subscribe Date': format(new Date(user.createdAt), 'MMM dd, yyyy'),
+        'Email': user.email,
+        'Job Title': user.jobTitle || 'N/A'
+      }));
+
+      // Create worksheet
+      const ws = XLSX.utils.json_to_sheet(excelData);
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Subscribers");
+
+      // Generate Excel file
+      XLSX.writeFile(wb, `subscribers_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      
+      toast.success('Excel file downloaded successfully!');
+    } catch (error) {
+      console.error('Error downloading Excel file:', error);
+      toast.error('Failed to download Excel file');
+    }
+  };
+
   return (
     <div className="p-8 pb-12 bg-white">
       {/* Header Section */}
       <header className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-6">All Users</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-semibold text-gray-900">All Users</h1>
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <FiDownload className="w-5 h-5" />
+            <span>Download Excel</span>
+          </button>
+        </div>
       </header>
 
       {/* Users Table */}
@@ -101,6 +140,9 @@ export default function SubscriberPage() {
               </th>
               <th className="px-6 py-3 text-left">
                 <span className="text-sm font-medium text-gray-600">Email</span>
+              </th>
+              <th className="px-6 py-3 text-left">
+                <span className="text-sm font-medium text-gray-600">Job Title</span>
               </th>
               <th className="w-10 px-6 py-3">
                 <span className="text-sm font-medium text-gray-600">Delete</span>
@@ -138,6 +180,11 @@ export default function SubscriberPage() {
                     <div>
                       <div className="text-sm font-medium text-gray-900">{user.email}</div>
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {user.jobTitle && (
+                      <div className="text-sm text-gray-900">{user.jobTitle}</div>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <button 
