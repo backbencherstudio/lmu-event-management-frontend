@@ -38,14 +38,15 @@ export default function Menu() {
 
         {/* Desktop Menu */}
         <div className="hidden lg:flex justify-start items-center gap-6">
-          <div 
+          <Link 
+            href="/admin-login"
             className="group relative h-11 w-11 bg-[#006198] rounded-lg flex justify-center items-center cursor-pointer hover:bg-[#004d7a] transition-colors"
           >
             <IoMdLogIn className="text-white text-2xl" />
             <div className="absolute invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 top-1/2 -translate-y-1/2 right-full mr-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-md whitespace-nowrap">
               Dashboard
             </div>
-          </div>
+          </Link>
           <Link 
             href="/client/submit-event"
             className="h-11 px-6 py-2 bg-[#006198] rounded-lg flex justify-center items-center gap-2 cursor-pointer hover:bg-[#004d7a] transition-colors"
@@ -67,14 +68,16 @@ export default function Menu() {
           }`}
         >
           <div className="flex flex-col p-4 gap-4">
-            <div 
+            <Link 
+              href="/admin-login"
               className="group relative h-11 w-11 mx-auto bg-[#006198] rounded-lg flex justify-center items-center cursor-pointer hover:bg-[#004d7a] transition-colors"
+              onClick={handleMenuItemClick}
             >
               <IoMdLogIn className="text-white text-2xl" />
               <div className="absolute invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 top-1/2 -translate-y-1/2 right-full mr-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-md whitespace-nowrap">
                 Dashboard
               </div>
-            </div>
+            </Link>
             <Link 
               href="/client/submit-event"
               className="h-11 bg-[#006198] rounded-lg flex justify-center items-center cursor-pointer hover:bg-[#004d7a] transition-colors"

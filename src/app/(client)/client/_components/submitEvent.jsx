@@ -85,6 +85,7 @@ export default function SubmitEvent() {
       console.log('Event data to submit:', eventData)
       toast.success('Event submitted successfully')
       resetForm()
+      router.push('/') // Redirect to landing page after successful submission
       
     } catch (error) {
       console.error('Error submitting event:', error)
@@ -249,7 +250,10 @@ export default function SubmitEvent() {
             <button 
               type="button"
               className="w-full sm:w-auto px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-              onClick={resetForm}
+              onClick={() => {
+                resetForm();
+                router.push('/');
+              }}
               disabled={isLoading}
             >
               Cancel
