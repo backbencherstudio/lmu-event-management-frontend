@@ -33,7 +33,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-  ],
+, "src/app/(client)/client/_components/submitEvent.jsx"  ],
   "exclude": [
     "node_modules"
   ]

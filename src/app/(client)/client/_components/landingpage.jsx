@@ -12,7 +12,6 @@ import rightarrow from '../../../../../public/client/right.svg';
 import EventApis from '../../../API/EventApi';
 import { toast } from 'react-hot-toast';
 import EventDetailsModal from './EventDetailsModal';
-
 // Base timezone for Cayman Islands where events are created
 const BASE_TIMEZONE = 'America/Cayman';
 
@@ -473,6 +472,9 @@ export default function Landingpage() {
         events={selectedEvents}
         date={selectedDate}
       />
+
+
+
     </>
   );
 }

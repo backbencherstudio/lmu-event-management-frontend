@@ -8,6 +8,7 @@ export default function Layout({ children }) {
       {/* Home Section */}
       <section className="w-full">
         <Menu />
+        {children}
       </section>
     </div>
   );
