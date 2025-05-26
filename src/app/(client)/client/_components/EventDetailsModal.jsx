@@ -1,118 +1,107 @@
 'use client'
-import React from 'react';
-import { format, isValid, parseISO } from 'date-fns';
+import React from 'react'
+import { 
+  Clock,
+  Calendar,
+  FileText,
+} from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { format } from 'date-fns'
 
-const EventDetailsModal = ({ isOpen, onClose, events, date }) => {
-  if (!isOpen) return null;
-
-  // Safely parse the date
-  const parseDate = (dateStr) => {
-    if (!dateStr) return null;
+export default function EventDetailsModal({ events = [], isOpen, onClose, date }) {
+  const formatTime = (time) => {
     try {
-      const parsedDate = typeof dateStr === 'string' ? parseISO(dateStr) : new Date(dateStr);
-      return isValid(parsedDate) ? parsedDate : null;
+      return format(new Date(time), 'h:mm a');
     } catch (error) {
-      console.error('Error parsing date:', error);
-      return null;
+      console.error('Error formatting time:', error);
+      return 'Invalid time';
     }
   };
 
-  // Safely format the date
-  const formatDate = (dateStr, formatStr) => {
-    const parsedDate = parseDate(dateStr);
-    return parsedDate ? format(parsedDate, formatStr) : 'Invalid Date';
+  const formatDate = (date) => {
+    try {
+      return format(new Date(date), 'EEEE, MMMM d, yyyy');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
   };
 
+  // Function to convert URLs in text to clickable links
+  const convertLinksToClickable = (text) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.split(urlRegex).map((part, index) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 underline"
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
+  if (!isOpen || !events.length) return null;
+
   return (
-    <div className="box flex justify-center items-center">
-      <div 
-        className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-50 flex items-center justify-center p-4"
-        onClick={onClose}
-      >
-        <div 
-          className="bg-white rounded-lg w-full max-w-[500px] max-h-[90vh] shadow-lg"
-          onClick={e => e.stopPropagation()}
-        >
-          {/* Modal Header */}
-          <div className="p-4 border-b border-gray-200">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-[#344053]">
-                Events for {formatDate(date, 'MMMM d, yyyy')}
-              </h2>
-              <button 
-                onClick={onClose}
-                className="text-[#344053] hover:text-[#006198] text-xl"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-semibold">
+            Events for {date ? formatDate(date) : 'Selected Date'}
+          </DialogTitle>
+        </DialogHeader>
 
-          {/* Modal Body */}
-          <div className="p-4 overflow-y-auto max-h-[60vh]">
-            {events && events.length > 0 ? (
-              <div className="space-y-4">
-                {events.map((event, index) => (
-                  <div key={event.id || index} className="p-3 rounded-lg bg-[#f8f9fb] last:mb-0">
-                    <h3 className="text-base font-semibold text-[#006198] mb-1">
-                      {event.title}
-                    </h3>
-                    <div className="text-[#4A4C56] text-sm mb-2">
-                      {formatDate(event.start, 'h:mm a')} - {formatDate(event.end, 'h:mm a')}
-                    </div>
-                    {event.description && (
-                      <p 
-                        className="text-[#344053] text-sm whitespace-pre-wrap"
-                        dangerouslySetInnerHTML={{
-                          __html: event.description.replace(
-                            /(https?:\/\/[^\s]+)/g,
-                            '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-[#006198] hover:underline">$1</a>'
-                          )
-                        }}
-                      />
-                    )}
+        <div className="space-y-6">
+          {events.map((event, index) => (
+            <div key={event.id || index} className="bg-white rounded-lg border shadow-sm">
+              {/* Event Name */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-t-lg">
+                <h3 className="text-xl font-semibold text-gray-900">{event.title}</h3>
+              </div>
+
+              {/* Event Time */}
+              <div className="p-4 border-b">
+                <div className="flex items-center">
+                  <Clock className="w-5 h-5 text-blue-600 mr-2" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Time</p>
+                    <p className="text-gray-900">
+                      {formatTime(event.start)} - {formatTime(event.end)}
+                    </p>
                   </div>
-                ))}
+                </div>
               </div>
-            ) : (
-              <div className="text-center text-[#344053] py-8">
-                No events scheduled for this day
-              </div>
-            )}
-          </div>
 
-          {/* Modal Footer */}
-          <div className="p-4 border-t border-gray-200">
-            <button
-              onClick={onClose}
-              className="w-full px-4 py-2 bg-[#006198] text-white text-base rounded-lg hover:bg-[#004d7a]"
-            >
-              Close
-            </button>
-          </div>
+              {/* Description */}
+              {event.description && (
+                <div className="p-4">
+                  <div className="flex items-center mb-2">
+                    <FileText className="w-5 h-5 text-orange-600 mr-2" />
+                    <span className="font-medium text-gray-900">Description</span>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">
+                    {convertLinksToClickable(event.description)}
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {events.length === 0 && (
+            <div className="text-center text-gray-500 py-8">
+              No events scheduled for this date
+            </div>
+          )}
         </div>
-      </div>
-
-      {/* Scrollbar Styles */}
-      <style jsx global>{`
-        /* Custom Scrollbar */
-        .overflow-y-auto::-webkit-scrollbar {
-          width: 6px;
-        }
-        .overflow-y-auto::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 3px;
-        }
-        .overflow-y-auto::-webkit-scrollbar-thumb {
-          background: #888;
-          border-radius: 3px;
-        }
-        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-          background: #555;
-        }
-      `}</style>
-    </div>
-  );
-};
-
-export default EventDetailsModal; 
+      </DialogContent>
+    </Dialog>
+  )
+} 

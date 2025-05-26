@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import { 
@@ -10,10 +10,23 @@ import {
   MoreHorizontal,
   Plus,
   Star,
+  Calendar,
+  Mail,
+  Phone,
+  FileText,
+  XIcon,
+  Trash2,
 } from 'lucide-react'
+import { FaCheck, FaTimes } from 'react-icons/fa'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -21,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Table,
@@ -32,11 +46,27 @@ import {
 } from "@/components/ui/table"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { dummyData } from '../_components/dummyData'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import DeleteRequestModal from '@/app/(Dashboard)/dashboard/_components/deleterequestmodal'
+import ApproveRequestModal from '@/app/(Dashboard)/dashboard/_components/approverequestmodal'
+import RejectRequestModal from '@/app/(Dashboard)/dashboard/_components/rejectrequestmodal'
+import EventDetailsModal from '@/app/(Dashboard)/dashboard/_components/EventDetailsModal'
+import EventRequestTable from '../_components/eventrequesttable'
+import { subDays } from 'date-fns'
 
 export default function EventRequest() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("all")
   const [timeFilter, setTimeFilter] = useState("30")
+  const [selectedEvent, setSelectedEvent] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [eventToDelete, setEventToDelete] = useState(null)
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -89,37 +119,43 @@ export default function EventRequest() {
     }
   }
 
-  const filteredEvents = dummyData.filter((event) => {
-    const matchesTab =
-      activeTab === "all" ||
-      (activeTab === "approved" && event.status === "completed") ||
-      (activeTab === "pending" && event.status === "pending") ||
-      (activeTab === "rejected" && event.status === "cancelled")
-
-    return matchesTab
-  })
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return {
-      day: date.getDate().toString().padStart(2, "0"),
-      month: date.toLocaleDateString("en-US", { month: "short" }),
-      year: date.getFullYear(),
-      weekday: date.toLocaleDateString("en-US", { weekday: "short" }),
-    }
+  const handleDelete = (event) => {
+    setEventToDelete(event)
+    setIsDeleteModalOpen(true)
   }
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-    }).format(amount)
+  const handleConfirmDelete = () => {
+    // Add your delete logic here
+    console.log('Deleting event:', eventToDelete.id)
+    setIsDeleteModalOpen(false)
+    setEventToDelete(null)
   }
 
-  const handleViewDetails = (eventId) => {
-    router.push(`/dashboard/event-request/${eventId}`)
+  const handleViewDetails = (event) => {
+    setSelectedEvent(event)
+    setIsModalOpen(true)
   }
+
+  const filteredEvents = useMemo(() => {
+    // First filter by status
+    let filtered = dummyData.filter((event) => {
+      if (activeTab === "all") return true
+      if (activeTab === "approved") return event.status === "completed"
+      if (activeTab === "pending") return event.status === "pending"
+      if (activeTab === "rejected") return event.status === "cancelled"
+      return true
+    })
+
+    // Then filter by date range
+    const days = parseInt(timeFilter)
+    const today = new Date()
+    const startDate = subDays(today, days)
+
+    return filtered.filter((event) => {
+      const eventDate = new Date(event.submittedDate)
+      return eventDate >= startDate && eventDate <= today
+    })
+  }, [activeTab, timeFilter])
 
   return (
     <div className="w-full max-w-7xl mx-auto p-6 space-y-6  min-h-screen">
@@ -172,100 +208,20 @@ export default function EventRequest() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="7">Last 7 days</SelectItem>
+                <SelectItem value="15">Last 15 days</SelectItem>
                 <SelectItem value="30">Last 30 days</SelectItem>
                 <SelectItem value="90">Last 90 days</SelectItem>
-                <SelectItem value="365">Last year</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </CardHeader>
 
         <CardContent className="p-5">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-gray-100 bg-gray-50/50">
-                  <TableHead className="font-semibold text-gray-900 w-[120px]">Date</TableHead>
-                  <TableHead className="font-semibold text-gray-900 w-[40%]">Event Details</TableHead>
-                  <TableHead className="font-semibold text-gray-900 w-[15%]">Phone Number</TableHead>
-                  <TableHead className="font-semibold text-gray-900 w-[100px]">Status</TableHead>
-                  <TableHead className="font-semibold text-gray-900 w-[100px] text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredEvents.map((event) => {
-                  const dateInfo = formatDate(event.submittedDate)
-                  return (
-                    <TableRow
-                      key={event.id}
-                      className="border-gray-50 hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-purple-50/30 transition-all duration-200 group cursor-pointer"
-                    >
-                      <TableCell className="py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <div className="flex flex-col items-center justify-center w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl shadow-sm group-hover:shadow-md transition-shadow">
-                              <span className="text-sm font-bold text-gray-900">{dateInfo.day}</span>
-                              <span className="text-xs text-gray-600">{dateInfo.month}</span>
-                            </div>
-                            <div
-                              className={`absolute -top-1 -right-1 w-3 h-3 rounded-full ${getStatusColor(event.status)}`}
-                            />
-                          </div>
-                          <div className="hidden sm:block">
-                            <div className="text-xs text-gray-500">{dateInfo.weekday}</div>
-                            <div className="text-xs text-gray-400">{dateInfo.year}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-
-                      <TableCell className="py-4 max-w-md">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="w-8 h-8">
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs">
-                                {event.name.substring(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
-                                {event.name}
-                              </div>
-                              <div className="text-xs text-gray-500">by {event.organizer}</div>
-                            </div>
-                          </div>
-                          <div className="text-sm text-gray-600 line-clamp-2 max-w-md">{event.description}</div>
-                        </div>
-                      </TableCell>
-
-                      <TableCell className="py-4">
-                        <div className="text-sm text-gray-600">{event.phone || 'N/A'}</div>
-                      </TableCell>
-
-                      <TableCell className="py-4">{getStatusBadge(event.status)}</TableCell>
-
-                      <TableCell className="py-4">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-blue-600 hover:bg-blue-500 hover:text-white bg-gray-50 shadow-sm font-semibold"
-                            onClick={() => handleViewDetails(event.id)}
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            Details
-                          </Button>
-
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
+          <EventRequestTable 
+            events={filteredEvents}
+            onViewDetails={handleViewDetails}
+            onDelete={handleDelete}
+          />
         </CardContent>
       </Card>
 
@@ -275,6 +231,24 @@ export default function EventRequest() {
           Showing {filteredEvents.length} of {dummyData.length} events
         </span>
       </div>
+
+      {selectedEvent && (
+        <EventDetailsModal
+          event={selectedEvent}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
+
+      <DeleteRequestModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false)
+          setEventToDelete(null)
+        }}
+        onConfirm={handleConfirmDelete}
+        eventName={eventToDelete?.name}
+      />
     </div>
   )
 }
