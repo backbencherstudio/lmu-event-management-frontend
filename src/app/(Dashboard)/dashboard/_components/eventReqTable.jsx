@@ -119,7 +119,7 @@ export default function EventReqTable() {
         <div className="relative w-[140px]">
           <button 
             onClick={() => setShowDateDropdown(!showDateDropdown)}
-            className="w-full px-3 py-1.5 rounded outline outline-1 outline-[#0068ef] flex items-center justify-between"
+            className="w-full px-3 py-1.5 rounded outline-1 outline-[#0068ef] flex items-center justify-between"
           >
             <span className="text-[#0068ef] text-sm font-bold">
               {dateRangeOptions.find(opt => opt.value === timeFilter)?.label}
@@ -151,6 +151,7 @@ export default function EventReqTable() {
               <th className="px-4 py-4 text-left text-sm text-[#4a4c56] font-bold">Date</th>
               <th className="px-4 py-4 text-left text-sm text-[#4a4c56] font-bold">Event Name</th>
               <th className="px-4 py-4 text-left text-sm text-[#4a4c56] font-bold">Description</th>
+              <th className="px-4 py-4 text-left text-sm text-[#4a4c56] font-bold">Phone Number</th>
               <th className="px-4 py-4 text-left text-sm text-[#4a4c56] font-bold">Status</th>
               <th className="px-4 py-4 text-left text-sm text-[#4a4c56] font-bold">Action</th>
             </tr>
@@ -161,6 +162,7 @@ export default function EventReqTable() {
                 <td className="px-4 py-4 text-sm font-bold text-[#777980]">{event.submittedDate}</td>
                 <td className="px-4 py-4 text-sm font-bold text-[#070707]">{event.name}</td>
                 <td className="px-4 py-4 text-sm font-bold text-[#777980]">{truncateDescription(event.description)}</td>
+                <td className="px-4 py-4 text-sm font-bold text-[#777980]">{event.phone || 'N/A'}</td>
                 <td className="px-4 py-4">
                   <div className="flex justify-center">
                     <div className={`inline-flex items-center justify-center w-24 px-2 py-1 rounded ${getStatusStyle(event.status)}`}>

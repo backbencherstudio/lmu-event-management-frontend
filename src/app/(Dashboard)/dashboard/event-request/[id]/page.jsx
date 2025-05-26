@@ -1,9 +1,13 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { MdArrowBack } from 'react-icons/md'
 import { FaCheck, FaTimes } from 'react-icons/fa'
+import { Calendar, Clock, Mail, Phone, FileText } from 'lucide-react'
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
 import { dummyData } from '../../_components/dummyData'
 
 export default function EventDetails({ params }) {
@@ -32,10 +36,15 @@ export default function EventDetails({ params }) {
   }
 
   const formatDate = (date) => {
-    return format(new Date(date), 'MMM dd, yyyy')
+    return new Date(date).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
   }
 
-  const convert24to12 = (time24h) => {
+  const formatTime = (time24h) => {
     const [hours, minutes] = time24h.split(':');
     const hour = parseInt(hours, 10);
     
@@ -47,28 +56,6 @@ export default function EventDetails({ params }) {
       return `12:${minutes} PM`;
     } else {
       return `${hour - 12}:${minutes} PM`;
-    }
-  }
-
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-[#009432] text-white'
-      case 'cancelled':
-        return 'bg-[#F44336] text-white'
-      default:
-        return 'bg-[#e67e22] text-white'
-    }
-  }
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'completed':
-        return 'Completed'
-      case 'cancelled':
-        return 'Cancelled'
-      default:
-        return 'Pending'
     }
   }
 
@@ -92,109 +79,104 @@ export default function EventDetails({ params }) {
       {/* Content */}
       <div className="max-w-[2000px] mx-auto px-6 py-6">
         <div className="bg-white rounded-lg shadow-sm p-6">
-          {/* Event Status */}
-          <div className="mb-8">
-            <div className={`inline-flex items-center px-3 py-1 rounded ${getStatusStyle(eventData.status)}`}>
-              <span className="text-sm font-bold">{getStatusText(eventData.status)}</span>
+          {/* Event Name */}
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xl font-semibold text-gray-900">{eventData.name}</h3>
+            </div>
+            <div className="flex items-center text-sm text-gray-600">
+              <Calendar className="w-4 h-4 mr-2" />
+              Request Date: {formatDate(eventData.submittedDate)}
             </div>
           </div>
 
-          {/* Event Details Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Event Information</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm text-gray-500">Event Name</label>
-                    <p className="text-gray-900 font-bold">{eventData.name}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500">Description</label>
-                    <p className="text-gray-900 font-bold">{eventData.description}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500">Amount</label>
-                    <p className="text-gray-900 font-bold">${eventData.amount.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500">Expected Attendees</label>
-                    <p className="text-gray-900 font-bold">{eventData.expectedAttendees}</p>
-                  </div>
-                </div>
+          {/* Contact Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="bg-white p-4 rounded-lg border shadow-sm">
+              <div className="flex items-center mb-2">
+                <Mail className="w-5 h-5 text-blue-600 mr-2" />
+                <span className="font-medium text-gray-900">Email</span>
               </div>
+              <p className="text-gray-700 break-all">{eventData.email}</p>
+            </div>
 
+            <div className="bg-white p-4 rounded-lg border shadow-sm">
+              <div className="flex items-center mb-2">
+                <Phone className="w-5 h-5 text-green-600 mr-2" />
+                <span className="font-medium text-gray-900">Phone Number</span>
+              </div>
+              <p className="text-gray-700">{eventData.phone}</p>
+            </div>
+          </div>
+
+          {/* Event Schedule */}
+          <div className="bg-white p-4 rounded-lg border shadow-sm mb-6">
+            <div className="flex items-center mb-4">
+              <Calendar className="w-5 h-5 text-purple-600 mr-2" />
+              <span className="font-medium text-gray-900">Event Schedule</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Date & Time</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm text-gray-500">Start Date</label>
-                    <p className="text-gray-900 font-bold">{formatDate(eventData.startDate)}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500">End Date</label>
-                    <p className="text-gray-900 font-bold">{formatDate(eventData.endDate)}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500">Start Time</label>
-                    <p className="text-gray-900 font-bold">{convert24to12(eventData.startTime)}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500">End Time</label>
-                    <p className="text-gray-900 font-bold">{convert24to12(eventData.endTime)}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500">Duration</label>
-                    <p className="text-gray-900 font-bold">
-                      {convert24to12(eventData.startTime)} - {convert24to12(eventData.endTime)}
-                    </p>
-                  </div>
-                </div>
+                <p className="text-sm font-medium text-gray-600 mb-1">Start Date</p>
+                <p className="text-gray-900">{formatDate(eventData.startDate)}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">End Date</p>
+                <p className="text-gray-900">{formatDate(eventData.endDate)}</p>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Organizer Information</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm text-gray-500">Organizer Name</label>
-                    <p className="text-gray-900 font-bold">{eventData.organizer}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500">Email</label>
-                    <p className="text-gray-900 font-bold">{eventData.email}</p>
-                  </div>
+            <Separator className="my-4" />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 text-blue-600 mr-2" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Start Time</p>
+                  <p className="text-gray-900">{formatTime(eventData.startTime)}</p>
                 </div>
               </div>
-
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Venue & Requirements</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm text-gray-500">Venue</label>
-                    <p className="text-gray-900 font-bold">{eventData.venue}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500">Requirements</label>
-                    <p className="text-gray-900 font-bold">{eventData.requirements}</p>
-                  </div>
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 text-red-600 mr-2" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600">End Time</p>
+                  <p className="text-gray-900">{formatTime(eventData.endTime)}</p>
                 </div>
               </div>
+            </div>
+          </div>
 
-              {eventData.status === 'pending' && (
-                <div className="pt-4">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
-                  <div className="flex gap-2">
-                    <button className="w-10 h-10 flex items-center justify-center bg-green-100 rounded-md hover:bg-green-200">
-                      <FaCheck className="text-green-600" size={16} />
-                    </button>
-                    <button className="w-10 h-10 flex items-center justify-center bg-red-100 rounded-md hover:bg-red-200">
-                      <FaTimes className="text-red-600" size={16} />
-                    </button>
-                  </div>
-                </div>
-              )}
+          {/* Description */}
+          <div className="bg-white p-4 rounded-lg border shadow-sm mb-6">
+            <div className="flex items-center mb-3">
+              <FileText className="w-5 h-5 text-orange-600 mr-2" />
+              <span className="font-medium text-gray-900">Event Description</span>
+            </div>
+            <p className="text-gray-700 leading-relaxed">{eventData.description}</p>
+          </div>
+
+          {/* Actions */}
+          <div className="mt-6 pt-6 border-t">
+            <div className="flex items-center justify-end">
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="bg-green-100 text-green-600 hover:bg-green-200 hover:text-green-700"
+                  onClick={() => {/* Add approve handler */}}
+                >
+                  <FaCheck className="w-4 h-4 mr-2" />
+                  Approve
+                </Button>
+                <Button
+                  variant="outline"
+                  className="bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-700"
+                  onClick={() => {/* Add reject handler */}}
+                >
+                  <FaTimes className="w-4 h-4 mr-2" />
+                  Reject
+                </Button>
+              </div>
             </div>
           </div>
         </div>

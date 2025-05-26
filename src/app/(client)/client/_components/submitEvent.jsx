@@ -36,6 +36,7 @@ export default function SubmitEvent() {
     defaultValues: {
       name: '',
       email: '',
+      phone: '',
       description: '',
     }
   })
@@ -106,8 +107,17 @@ export default function SubmitEvent() {
           <IoArrowBack className="mr-2" />
           <span>Back</span>
         </button>
-        <h2 className="text-xl font-semibold text-gray-900 text-center">Submit New Event</h2>
-        <p className="text-sm text-gray-600 mt-1 text-center">Fill in the event details below</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Submit New Event</h2>
+            <p className="text-sm text-gray-600 mt-1">Fill in the event details below</p>
+          </div>
+          <img 
+            src="/client/logo.svg" 
+            alt="Logo" 
+            className="h-18"
+          />
+        </div>
       </div>
 
       {/* Form Content */}
@@ -154,6 +164,28 @@ export default function SubmitEvent() {
             />
             {errors.email && (
               <p className="text-sm text-red-500">{errors.email.message}</p>
+            )}
+          </div>
+
+          {/* Phone Number */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Phone Number <span className="text-purple-500">*</span>
+            </label>
+            <input 
+              type="tel"
+              {...register("phone", { 
+                required: "Phone number is required",
+                pattern: {
+                  value: /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4}$/,
+                  message: "Invalid phone number format"
+                }
+              })}
+              className={`w-full px-3.5 py-2.5 border ${errors.phone ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:border-blue-500`}
+              placeholder="Enter your phone number"
+            />
+            {errors.phone && (
+              <p className="text-sm text-red-500">{errors.phone.message}</p>
             )}
           </div>
 
